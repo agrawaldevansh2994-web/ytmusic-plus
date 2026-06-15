@@ -15,24 +15,30 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export interface Track {
   id: string
-  mbid: string | null
-  name: string
+  video_id: string
+  title: string // was: name
   artist: string
   album: string | null
-  duration_ms: number | null
-  tags: string[]
+  duration_seconds: number | null // was: duration_ms
+  genre_tags: string[] // was: tags
+  lastfm_url: string | null
+  mbid: string | null
   created_at: string
+  updated_at: string
 }
 
 export interface Play {
   id: string
-  track_id: string
+  track_id: string | null // nullable
+  video_id: string
+  title: string // denormalized
+  artist: string // denormalized
+  album: string | null
   played_at: string
-  source: string
-  loved: boolean
+  duration_seconds: number | null
+  source: string | null
   created_at: string
 }
-
 export interface TasteProfile {
   id: string
   dimension: string

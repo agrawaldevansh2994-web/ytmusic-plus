@@ -7,6 +7,7 @@ export interface ShuffleTrack {
   genre_tags: string[]
   affinity_score: number
   tier: 'high' | 'mid' | 'low'
+  youtube_video_id?: string
 }
 
 export interface TasteSummary {

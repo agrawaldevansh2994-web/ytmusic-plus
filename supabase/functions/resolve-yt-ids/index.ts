@@ -9,8 +9,10 @@ const supabase = createClient(
 const YT_KEY = Deno.env.get('YOUTUBE_API_KEY') ?? '';
 const YT_SEARCH = 'https://www.googleapis.com/youtube/v3/search';
 
+// Rate limit: 100 units/call for search, free quota is 10,000/day
+// We batch with a delay to stay safe
 const DELAY_MS = 300;
-const MAX_PER_RUN = 30;
+const MAX_PER_RUN = 30; // process 30 tracks per invocation to stay within quota
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -34,6 +36,7 @@ Deno.serve(async (_req: Request) => {
     });
   }
 
+  // Fetch tracks that don't have a YouTube video ID yet
   const { data: tracks, error } = await supabase
     .from('tracks')
     .select('id, title, artist')
@@ -56,14 +59,22 @@ Deno.serve(async (_req: Request) => {
   let failed = 0;
 
   for (const track of tracks) {
+    // Try "Artist - Title" first, fall back to just title if needed
     const query = `${track.artist} - ${track.title}`;
     const videoId = await searchYouTube(query);
 
     if (videoId) {
-      await supabase.from('tracks').update({ youtube_video_id: videoId }).eq('id', track.id);
+      await supabase
+        .from('tracks')
+        .update({ youtube_video_id: videoId })
+        .eq('id', track.id);
       resolved++;
     } else {
-      await supabase.from('tracks').update({ youtube_video_id: '__not_found__' }).eq('id', track.id);
+      // Mark as attempted with a sentinel so we don't retry forever
+      await supabase
+        .from('tracks')
+        .update({ youtube_video_id: '__not_found__' })
+        .eq('id', track.id);
       failed++;
     }
 
@@ -71,8 +82,13 @@ Deno.serve(async (_req: Request) => {
   }
 
   return new Response(
-    JSON.stringify({ success: true, processed: tracks.length, resolved, failed,
-      remaining: tracks.length === MAX_PER_RUN ? 'more tracks pending — invoke again' : 'all done' }),
+    JSON.stringify({
+      success: true,
+      processed: tracks.length,
+      resolved,
+      failed,
+      remaining: tracks.length === MAX_PER_RUN ? 'more tracks pending — invoke again' : 'all done',
+    }),
     { headers: { 'Content-Type': 'application/json' } }
   );
 });

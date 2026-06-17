@@ -10,3 +10,5 @@ dist/
 Thumbs.db
 *.log
 *.tsbuildinfo
+
+.vercel

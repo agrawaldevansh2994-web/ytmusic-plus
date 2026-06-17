@@ -79,7 +79,6 @@ export default function Shuffle() {
   const [size, setSize] = useState(25)
   const [pushState, setPushState] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
   const [ytPlaylistUrl, setYtPlaylistUrl] = useState<string | null>(null)
-  const [enrichedPlaylist, setEnrichedPlaylist] = useState<(ShuffleTrack & { youtube_video_id?: string })[]>([])
 
   const persona = PERSONA_META[summary?.persona ?? 'evening']
 
@@ -87,25 +86,7 @@ export default function Shuffle() {
   const oauthToken = getTokenFromHash()
 
   async function handleGenerate(n: number) {
-    const newPlaylist = await generate(n)
-    // After generating, enrich with YouTube video IDs from DB
-    const titles = newPlaylist.map((t) => t.title)
-    if (titles.length > 0) {
-      const { data } = await supabase
-        .from('tracks')
-        .select('title, artist, youtube_video_id')
-        .in('title', titles)
-      const vidMap = new Map<string, string>()
-      for (const row of (data ?? [])) {
-        vidMap.set(`${row.artist}__${row.title}`, row.youtube_video_id)
-      }
-      setEnrichedPlaylist(
-        newPlaylist.map((t) => ({
-          ...t,
-          youtube_video_id: vidMap.get(`${t.artist}__${t.title}`) ?? undefined,
-        }))
-      )
-    }
+    await generate(n)
   }
 
   async function handlePushToYouTube() {
@@ -115,7 +96,7 @@ export default function Shuffle() {
     }
     setPushState('pushing')
     try {
-      const tracks = enrichedPlaylist.length ? enrichedPlaylist : playlist
+      const tracks = playlist
       const playlistId = await createYouTubePlaylist(oauthToken, tracks as any)
       setYtPlaylistUrl(`https://music.youtube.com/playlist?list=${playlistId}`)
       setPushState('done')
@@ -124,7 +105,7 @@ export default function Shuffle() {
     }
   }
 
-  const displayPlaylist = enrichedPlaylist.length ? enrichedPlaylist : playlist
+  const displayPlaylist = playlist
 
   return (
     <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">

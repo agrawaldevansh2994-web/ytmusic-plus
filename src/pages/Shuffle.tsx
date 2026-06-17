@@ -62,14 +62,15 @@ function signInWithGoogle(): void {
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
 }
 
-function getTokenFromHash(): string | null {
+function getAndStoreToken(): string | null {
   const hash = new URLSearchParams(window.location.hash.slice(1))
   const token = hash.get('access_token')
   if (token) {
-    // Clean hash from URL
+    sessionStorage.setItem('yt_access_token', token)
     window.history.replaceState({}, '', window.location.pathname)
+    return token
   }
-  return token
+  return sessionStorage.getItem('yt_access_token')
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -82,8 +83,8 @@ export default function Shuffle() {
 
   const persona = PERSONA_META[summary?.persona ?? 'evening']
 
-  // On mount — check if we're returning from OAuth redirect
-  const oauthToken = getTokenFromHash()
+  // On mount — check if we're returning from OAuth redirect or have session token
+  const oauthToken = getAndStoreToken()
 
   async function handleGenerate(n: number) {
     await generate(n)
@@ -101,6 +102,7 @@ export default function Shuffle() {
       setYtPlaylistUrl(`https://music.youtube.com/playlist?list=${playlistId}`)
       setPushState('done')
     } catch {
+      sessionStorage.removeItem('yt_access_token')
       setPushState('error')
     }
   }

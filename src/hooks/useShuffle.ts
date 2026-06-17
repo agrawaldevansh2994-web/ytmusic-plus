@@ -10,7 +10,7 @@ export interface ShuffleTrack {
 }
 
 export interface TasteSummary {
-  persona: string
+  persona: string       // e.g. 'evening'
   topGenres: { name: string; score: number }[]
 }
 
@@ -54,6 +54,7 @@ export function useShuffle() {
       setGenerated(true)
     }
     setLoading(false)
+    return (data as ShuffleTrack[]) || []
   }
 
   return { playlist, loading, generated, generate }

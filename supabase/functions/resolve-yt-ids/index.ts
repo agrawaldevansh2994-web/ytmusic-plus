@@ -6,35 +6,27 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
-const YT_KEY = Deno.env.get('YOUTUBE_API_KEY') ?? '';
-const YT_SEARCH = 'https://www.googleapis.com/youtube/v3/search';
+import YouTube from "npm:youtube-sr";
 
-// Rate limit: 100 units/call for search, free quota is 10,000/day
-// We batch with a delay to stay safe
-const DELAY_MS = 300;
-const MAX_PER_RUN = 30; // process 30 tracks per invocation to stay within quota
+// Rate limit: No more API limits! But we still batch to avoid Deno timeout (max 60s)
+const DELAY_MS = 200;
+const MAX_PER_RUN = 50; // Process 50 tracks per invocation
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
 async function searchYouTube(query: string): Promise<string | null> {
-  const url = `${YT_SEARCH}?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&videoCategoryId=10&key=${YT_KEY}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    console.warn(`YouTube search failed for "${query}": ${res.status}`);
+  try {
+    const video = await YouTube.default.searchOne(query, "video");
+    return video?.id ?? null;
+  } catch (err) {
+    console.warn(`YouTube search failed for "${query}":`, err);
     return null;
   }
-  const data = await res.json();
-  return data?.items?.[0]?.id?.videoId ?? null;
 }
 
 Deno.serve(async (_req: Request) => {
-  if (!YT_KEY) {
-    return new Response(JSON.stringify({ error: 'YOUTUBE_API_KEY not set' }), {
-      status: 500, headers: { 'Content-Type': 'application/json' },
-    });
-  }
 
   // Fetch tracks that don't have a YouTube video ID yet
   const { data: tracks, error } = await supabase

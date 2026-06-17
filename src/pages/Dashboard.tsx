@@ -6,9 +6,9 @@ import GenreChart from '../components/GenreChart'
 import Heatmap from '../components/Heatmap'
 
 const PERIODS: { label: string; value: Period }[] = [
-  { label: 'This week',  value: 'week'  },
-  { label: 'This month', value: 'month' },
-  { label: 'All time',   value: 'all'   },
+  { label: 'Week',  value: 'week'  },
+  { label: 'Month', value: 'month' },
+  { label: 'All',   value: 'all'   },
 ]
 
 export default function Dashboard() {
@@ -27,25 +27,30 @@ export default function Dashboard() {
   }))
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <header className="flex items-center justify-between mb-6">
+    <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
+
+      {/* ── Header ─────────────────────────────────────────────── */}
+      <header className="flex items-center justify-between mb-7">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-bold text-white tracking-tight leading-none">
             YTMusic<span className="text-red-500">+</span>
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">DevDevansh</p>
+          <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
+            DevDevansh · live
+          </p>
         </div>
 
-        <div className="flex items-center gap-1 bg-zinc-900 rounded-xl p-1">
+        {/* Period selector */}
+        <div className="flex items-center gap-0.5 bg-zinc-900 border border-zinc-800 rounded-xl p-1">
           {PERIODS.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                 period === p.value
-                  ? 'bg-zinc-700 text-white'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-red-500 text-white shadow-sm shadow-red-500/30'
+                  : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
               {p.label}
@@ -54,65 +59,76 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Error banner */}
+      {/* ── Error banner ────────────────────────────────────────── */}
       {error && (
-        <div className="mb-4 p-3 bg-red-950 border border-red-800 rounded-xl">
-          <p className="text-red-400 text-sm">Error: {error}</p>
+        <div className="mb-5 p-3 bg-red-950/50 border border-red-900/50 rounded-xl">
+          <p className="text-red-400 text-xs font-medium">⚠ {error}</p>
         </div>
       )}
 
-      {/* Summary cards */}
+      {/* ── Summary cards ───────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <StatCard
-          label="Scrobbles"
-          value={stats?.summary.total_plays.toLocaleString() ?? '—'}
-          loading={loading}
-        />
-        <StatCard
-          label="Artists"
-          value={stats?.summary.unique_artists.toLocaleString() ?? '—'}
-          loading={loading}
-        />
-        <StatCard
-          label="Top genre"
-          value={stats?.summary.top_genre ?? '—'}
-          loading={loading}
-        />
+        <StatCard label="Scrobbles"  value={stats?.summary.total_plays.toLocaleString() ?? '—'} loading={loading} accent />
+        <StatCard label="Artists"    value={stats?.summary.unique_artists.toLocaleString() ?? '—'} loading={loading} />
+        <StatCard label="Top genre"  value={stats?.summary.top_genre ?? '—'} loading={loading} small />
       </div>
 
-      {/* Top tracks + artists */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      {/* ── Top tracks + artists ────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2">
         <TopList title="Top tracks"  items={topTracksItems}  loading={loading} />
         <TopList title="Top artists" items={topArtistItems}  loading={loading} />
       </div>
 
-      {/* Genre chart */}
+      {/* ── Genre chart ─────────────────────────────────────────── */}
       <div className="mb-4">
         <GenreChart data={stats?.genreDistribution ?? []} loading={loading} />
       </div>
 
-      {/* Heatmap */}
+      {/* ── Heatmap ─────────────────────────────────────────────── */}
       <Heatmap data={stats?.heatmap ?? []} loading={loading} />
+
+      <p className="text-center text-[10px] text-zinc-700 mt-6">
+        Syncs every 30 min via pg_cron · Powered by Last.fm + Supabase
+      </p>
     </div>
   )
 }
 
+/* ── StatCard ────────────────────────────────────────────────────────────── */
 function StatCard({
   label,
   value,
   loading,
+  accent = false,
+  small = false,
 }: {
   label: string
   value: string
   loading: boolean
+  accent?: boolean
+  small?: boolean
 }) {
   return (
-    <div className="bg-zinc-900 rounded-2xl p-4">
-      <p className="text-xs text-zinc-400 mb-1">{label}</p>
+    <div
+      className={`rounded-2xl p-4 border transition-colors ${
+        accent
+          ? 'bg-red-950/30 border-red-900/40'
+          : 'bg-zinc-900/60 border-zinc-800/50'
+      }`}
+    >
+      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-1.5">
+        {label}
+      </p>
       {loading ? (
-        <div className="h-6 w-20 bg-zinc-800 rounded animate-pulse" />
+        <div className="h-6 w-14 bg-zinc-800 rounded-lg animate-pulse" />
       ) : (
-        <p className="text-xl font-bold text-white truncate">{value}</p>
+        <p
+          className={`font-bold text-white leading-tight truncate ${
+            small ? 'text-sm' : 'text-2xl tabular-nums'
+          } ${accent ? 'text-red-400' : ''}`}
+        >
+          {value}
+        </p>
       )}
     </div>
   )

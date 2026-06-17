@@ -3,19 +3,18 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
   body {
     @apply bg-zinc-950 text-zinc-100 antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(239,68,68,0.06), transparent);
   }
 
-  ::-webkit-scrollbar {
-    @apply w-1.5;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-zinc-700 rounded-full;
-  }
+  ::-webkit-scrollbar { @apply w-1.5; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-zinc-700 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-zinc-600; }
 }

@@ -1,7 +1,7 @@
 import type { HeatmapCell } from '../hooks/useStats'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const HOUR_MARKERS = new Set([0, 6, 12, 18, 23])
+const HOUR_LABELS: Record<number, string> = { 0: '12a', 6: '6a', 12: '12p', 18: '6p', 23: '11p' }
 
 interface HeatmapProps {
   data: HeatmapCell[]
@@ -19,75 +19,83 @@ export default function Heatmap({ data, loading }: HeatmapProps) {
 
   function cellBg(dow: number, hour: number): string {
     const count = lookup.get(`${dow}-${hour}`) ?? 0
-    if (count === 0) return '#18181b'
-    return `rgba(239, 68, 68, ${Math.max(0.15, count / max)})`
+    if (count === 0) return 'rgba(39,39,42,0.6)'
+    const intensity = Math.max(0.12, count / max)
+    return `rgba(239,68,68,${intensity})`
+  }
+
+  function cellBorder(dow: number, hour: number): string {
+    const count = lookup.get(`${dow}-${hour}`) ?? 0
+    if (count === 0) return 'transparent'
+    return `rgba(239,68,68,${Math.min(0.4, (count / max) * 0.6)})`
   }
 
   return (
-    <div className="bg-zinc-900 rounded-2xl p-4">
-      <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">
-        Listening heatmap
+    <div className="bg-zinc-900/60 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-5">
+      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-4">
+        Listening heatmap <span className="text-zinc-700 normal-case font-normal">(IST)</span>
       </h3>
 
-      {loading && <div className="h-36 bg-zinc-800 rounded-lg animate-pulse" />}
+      {loading && <div className="h-40 bg-zinc-800/50 rounded-xl animate-pulse" />}
 
       {!loading && (
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full">
-            {/* Hour labels */}
-            <div className="flex mb-1" style={{ paddingLeft: 36 }}>
+            {/* Hour labels row */}
+            <div className="flex mb-1.5" style={{ paddingLeft: 38 }}>
               {Array.from({ length: 24 }).map((_, h) => (
-                <div
-                  key={h}
-                  style={{ width: 14, marginRight: 2, textAlign: 'center' }}
-                >
-                  {HOUR_MARKERS.has(h) && (
-                    <span className="text-[10px] text-zinc-500">{h}</span>
+                <div key={h} style={{ width: 16, marginRight: 2, textAlign: 'center' }}>
+                  {HOUR_LABELS[h] !== undefined && (
+                    <span className="text-[9px] text-zinc-600 font-medium">{HOUR_LABELS[h]}</span>
                   )}
                 </div>
               ))}
             </div>
 
-            {/* Rows */}
+            {/* Day rows */}
             {DAYS.map((day, dow) => (
-              <div key={dow} className="flex items-center mb-0.5">
+              <div key={dow} className="flex items-center mb-1">
                 <span
-                  className="text-[10px] text-zinc-500 shrink-0 text-right pr-2"
-                  style={{ width: 34 }}
+                  className="text-[10px] text-zinc-600 shrink-0 text-right pr-2 font-medium"
+                  style={{ width: 36 }}
                 >
                   {day}
                 </span>
-                {Array.from({ length: 24 }).map((_, h) => (
-                  <div
-                    key={h}
-                    className="rounded-sm shrink-0"
-                    style={{
-                      width: 14,
-                      height: 14,
-                      marginRight: 2,
-                      backgroundColor: cellBg(dow, h),
-                    }}
-                    title={`${day} ${h}:00 — ${lookup.get(`${dow}-${h}`) ?? 0} plays`}
-                  />
-                ))}
+                {Array.from({ length: 24 }).map((_, h) => {
+                  const count = lookup.get(`${dow}-${h}`) ?? 0
+                  return (
+                    <div
+                      key={h}
+                      className="rounded shrink-0 transition-transform hover:scale-125 cursor-default"
+                      style={{
+                        width: 16,
+                        height: 16,
+                        marginRight: 2,
+                        backgroundColor: cellBg(dow, h),
+                        border: `1px solid ${cellBorder(dow, h)}`,
+                      }}
+                      title={`${day} ${h}:00–${h + 1}:00 — ${count} ${count === 1 ? 'play' : 'plays'}`}
+                    />
+                  )
+                })}
               </div>
             ))}
 
             {/* Legend */}
-            <div className="flex items-center gap-1.5 mt-3" style={{ paddingLeft: 36 }}>
-              <span className="text-[10px] text-zinc-500 mr-1">Less</span>
-              {[0, 0.25, 0.5, 0.75, 1].map((a) => (
+            <div className="flex items-center gap-1.5 mt-4" style={{ paddingLeft: 38 }}>
+              <span className="text-[10px] text-zinc-600 mr-1">Less</span>
+              {[0, 0.15, 0.35, 0.6, 0.85, 1].map((a) => (
                 <div
                   key={a}
-                  className="rounded-sm"
+                  className="rounded"
                   style={{
-                    width: 12,
-                    height: 12,
-                    backgroundColor: a === 0 ? '#18181b' : `rgba(239, 68, 68, ${a})`,
+                    width: 13,
+                    height: 13,
+                    backgroundColor: a === 0 ? 'rgba(39,39,42,0.6)' : `rgba(239,68,68,${a})`,
                   }}
                 />
               ))}
-              <span className="text-[10px] text-zinc-500 ml-1">More</span>
+              <span className="text-[10px] text-zinc-600 ml-1">More</span>
             </div>
           </div>
         </div>

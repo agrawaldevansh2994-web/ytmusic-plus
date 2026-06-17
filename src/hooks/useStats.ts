@@ -7,6 +7,7 @@ export interface TopTrack {
   name: string
   artist: string
   play_count: number
+  image_url?: string
 }
 
 export interface TopArtist {

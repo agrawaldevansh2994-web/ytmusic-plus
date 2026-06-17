@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStats } from '../hooks/useStats'
 import type { Period } from '../hooks/useStats'
+import { useImageColor } from '../hooks/useImageColor'
 import TopList from '../components/TopList'
 import GenreChart from '../components/GenreChart'
 import Heatmap from '../components/Heatmap'
@@ -14,11 +15,13 @@ const PERIODS: { label: string; value: Period }[] = [
 export default function Dashboard() {
   const [period, setPeriod] = useState<Period>('all')
   const { stats, loading, error } = useStats(period)
+  const topTrackColor = useImageColor(stats?.topTracks?.[0]?.image_url)
 
   const topTracksItems = (stats?.topTracks ?? []).map((t) => ({
     name: t.name,
     subtitle: t.artist,
     play_count: t.play_count,
+    image_url: t.image_url,
   }))
 
   const topArtistItems = (stats?.topArtists ?? []).map((a) => ({
@@ -38,11 +41,27 @@ export default function Dashboard() {
 
   const syncText = stats?.lastSyncTimestamp ? `Last synced ${formatTimeAgo(stats.lastSyncTimestamp)}` : 'live'
 
+  const colorStyle = topTrackColor
+    ? {
+        '--theme-color-rgb': `${topTrackColor.r}, ${topTrackColor.g}, ${topTrackColor.b}`,
+        '--theme-color-light': `rgb(${Math.min(255, topTrackColor.r + 50)}, ${Math.min(255, topTrackColor.g + 50)}, ${Math.min(255, topTrackColor.b + 50)})`,
+      } as React.CSSProperties
+    : {
+        '--theme-color-rgb': '239, 68, 68',
+        '--theme-color-light': '#fb7185',
+      } as React.CSSProperties
+
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden transition-colors duration-1000" style={colorStyle}>
       {/* ── Ambient Background Glows ──────────────────────────────── */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-red-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rose-900/10 blur-[120px] pointer-events-none" />
+      <div 
+        className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none transition-colors duration-1000"
+        style={{ backgroundColor: 'rgba(var(--theme-color-rgb), 0.15)' }}
+      />
+      <div 
+        className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none transition-colors duration-1000 delay-150"
+        style={{ backgroundColor: 'rgba(var(--theme-color-rgb), 0.08)' }}
+      />
 
       <div className="relative z-10 px-4 py-8 max-w-2xl mx-auto">
         {/* ── Header ─────────────────────────────────────────────── */}
@@ -50,12 +69,23 @@ export default function Dashboard() {
           <div className="space-y-1">
             <h1 className="text-3xl font-extrabold tracking-tight">
               <span className="text-white">YTMusic</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-400">+</span>
+              <span 
+                className="bg-clip-text text-transparent transition-colors duration-1000"
+                style={{ backgroundImage: 'linear-gradient(to right, rgb(var(--theme-color-rgb)), var(--theme-color-light))' }}
+              >
+                +
+              </span>
             </h1>
             <div className="flex items-center gap-2">
               <div className="relative flex items-center justify-center h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                <span 
+                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ backgroundColor: 'rgb(var(--theme-color-rgb))' }}
+                ></span>
+                <span 
+                  className="relative inline-flex rounded-full h-1.5 w-1.5 shadow-[0_0_8px_rgba(var(--theme-color-rgb),0.8)]"
+                  style={{ backgroundColor: 'rgb(var(--theme-color-rgb))' }}
+                ></span>
               </div>
               <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest">
                 DevDevansh <span className="mx-1 opacity-50">•</span> <span className="lowercase">{syncText}</span>
@@ -71,12 +101,16 @@ export default function Dashboard() {
                 onClick={() => setPeriod(p.value)}
                 className={`relative px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-300 ${
                   period === p.value
-                    ? 'text-white shadow-[0_0_20px_rgba(239,68,68,0.2)]'
+                    ? 'text-white'
                     : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
                 }`}
+                style={period === p.value ? { textShadow: '0 0 10px rgba(var(--theme-color-rgb), 0.5)' } : undefined}
               >
                 {period === p.value && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl -z-10" />
+                  <div 
+                    className="absolute inset-0 rounded-xl -z-10 transition-colors duration-1000"
+                    style={{ backgroundImage: 'linear-gradient(to right, rgb(var(--theme-color-rgb)), var(--theme-color-light))' }}
+                  />
                 )}
                 {p.label}
               </button>
@@ -145,9 +179,13 @@ function StatCard({
     <div
       className={`group relative overflow-hidden rounded-3xl p-5 border transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl ${
         accent
-          ? 'bg-gradient-to-br from-red-950/80 to-zinc-950 border-red-900/50 hover:border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.05)]'
+          ? 'bg-zinc-950/80 hover:bg-zinc-900'
           : 'bg-zinc-900/40 backdrop-blur-xl border-zinc-800/50 hover:border-zinc-700 hover:bg-zinc-900/60'
       }`}
+      style={accent ? { 
+        borderColor: 'rgba(var(--theme-color-rgb), 0.3)', 
+        boxShadow: '0 0 30px rgba(var(--theme-color-rgb), 0.05)' 
+      } : undefined}
     >
       {/* Glossy reflection effect */}
       <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -162,7 +200,8 @@ function StatCard({
         <p
           className={`font-black tracking-tight leading-none truncate z-10 relative drop-shadow-sm transition-transform duration-500 group-hover:scale-105 origin-left ${
             small ? 'text-lg text-white mt-1' : 'text-3xl tabular-nums'
-          } ${accent ? 'bg-clip-text text-transparent bg-gradient-to-br from-white to-red-200' : 'text-white'}`}
+          } ${accent ? 'text-transparent bg-clip-text' : 'text-white'}`}
+          style={accent ? { backgroundImage: 'linear-gradient(to bottom right, #ffffff, var(--theme-color-light))' } : undefined}
         >
           {value}
         </p>

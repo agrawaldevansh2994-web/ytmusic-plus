@@ -137,6 +137,9 @@ Deno.serve(async (_req: Request) => {
         const playedAt = new Date(parseInt(track.date.uts) * 1000).toISOString();
         const uts = parseInt(track.date.uts);
 
+        const imageObj = track.image?.find((img: any) => img.size === 'extralarge') || track.image?.find((img: any) => img.size === 'large');
+        const imageUrl = imageObj?.['#text'] || null;
+
         if (!artist || !title) continue;
 
         if (!latestTimestamp || uts > latestTimestamp) {
@@ -153,6 +156,7 @@ Deno.serve(async (_req: Request) => {
           artist,
           album,
           mbid,
+          image_url: imageUrl,
           updated_at: new Date().toISOString(),
         };
         if (genreTags.length > 0) {

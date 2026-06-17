@@ -2,6 +2,7 @@ export interface TopItem {
   name: string
   subtitle?: string
   play_count: number
+  image_url?: string
 }
 
 interface TopListProps {
@@ -63,6 +64,15 @@ export default function TopList({ title, items, loading }: TopListProps) {
                     <span className="text-[11px] text-zinc-600">{i + 1}</span>
                   )}
                 </span>
+
+                {/* Optional Artwork */}
+                {item.image_url && (
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="w-10 h-10 rounded-md object-cover shadow-md shadow-black/50"
+                  />
+                )}
 
                 {/* Track / Artist info */}
                 <div className="flex-1 min-w-0">

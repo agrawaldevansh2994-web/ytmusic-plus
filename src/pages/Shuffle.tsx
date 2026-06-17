@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useShuffle, useTasteSummary } from '../hooks/useShuffle'
 import type { ShuffleTrack } from '../hooks/useShuffle'
-import { supabase } from '../lib/supabase'
 
 const PERSONA_META: Record<string, { emoji: string; label: string; color: string }> = {
   morning:   { emoji: '🌅', label: 'Morning listener',   color: 'from-amber-900/30 to-transparent' },
@@ -80,11 +79,15 @@ export default function Shuffle() {
   const [size, setSize] = useState(25)
   const [pushState, setPushState] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
   const [ytPlaylistUrl, setYtPlaylistUrl] = useState<string | null>(null)
+  const [oauthToken, setOauthToken] = useState(() => getAndStoreToken())
 
   const persona = PERSONA_META[summary?.persona ?? 'evening']
 
-  // On mount — check if we're returning from OAuth redirect or have session token
-  const oauthToken = getAndStoreToken()
+  function handleDisconnect() {
+    sessionStorage.removeItem('yt_access_token')
+    setOauthToken(null)
+    setPushState('idle')
+  }
 
   async function handleGenerate(n: number) {
     await generate(n)
@@ -103,6 +106,7 @@ export default function Shuffle() {
       setPushState('done')
     } catch {
       sessionStorage.removeItem('yt_access_token')
+      setOauthToken(null)
       setPushState('error')
     }
   }
@@ -195,6 +199,11 @@ export default function Shuffle() {
           {pushState === 'error' && (
             <p className="text-[11px] text-red-400 text-center mt-1.5">Failed to create playlist. Try signing in again.</p>
           )}
+          {oauthToken && pushState !== 'pushing' && (
+            <button onClick={handleDisconnect} className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors w-full text-center mt-2 block">
+              Disconnect YouTube Music
+            </button>
+          )}
         </div>
       )}
 
@@ -260,8 +269,14 @@ function TrackRow({ track, index }: {
         <span className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-red-500/10 text-red-400">
           <svg className="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
         </span>
+      ) : track.youtube_video_id === '__not_found__' ? (
+        <span className="shrink-0 flex items-center justify-center w-7 h-7" title="Not found on YouTube">
+          <span className="text-[10px] text-zinc-600">—</span>
+        </span>
       ) : (
-        <span className="shrink-0 w-7 h-7" />
+        <span className="shrink-0 flex items-center justify-center w-7 h-7" title="Resolving video ID...">
+          <span className="w-2.5 h-2.5 border-2 border-zinc-600 border-t-transparent rounded-full animate-spin" />
+        </span>
       )}
 
       <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${tier.bg} ${tier.text}`}

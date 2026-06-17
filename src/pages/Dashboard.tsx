@@ -26,6 +26,18 @@ export default function Dashboard() {
     play_count: a.play_count,
   }))
 
+  const formatTimeAgo = (ts: number) => {
+    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+    const diffInSeconds = Math.floor((Date.now() - ts * 1000) / 1000)
+    
+    if (diffInSeconds < 60) return 'just now'
+    if (diffInSeconds < 3600) return rtf.format(-Math.floor(diffInSeconds / 60), 'minute')
+    if (diffInSeconds < 86400) return rtf.format(-Math.floor(diffInSeconds / 3600), 'hour')
+    return rtf.format(-Math.floor(diffInSeconds / 86400), 'day')
+  }
+
+  const syncText = stats?.lastSyncTimestamp ? `Last synced ${formatTimeAgo(stats.lastSyncTimestamp)}` : 'live'
+
   return (
     <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
 
@@ -37,7 +49,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
-            DevDevansh · live
+            DevDevansh · {syncText}
           </p>
         </div>
 
@@ -88,7 +100,7 @@ export default function Dashboard() {
       <Heatmap data={stats?.heatmap ?? []} loading={loading} />
 
       <p className="text-center text-[10px] text-zinc-700 mt-6">
-        Syncs every 30 min via pg_cron · Powered by Last.fm + Supabase
+        Syncs every 15 min via pg_cron · Powered by Last.fm + Supabase
       </p>
     </div>
   )

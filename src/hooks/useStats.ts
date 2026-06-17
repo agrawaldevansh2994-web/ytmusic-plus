@@ -37,6 +37,7 @@ export interface Stats {
   topArtists: TopArtist[]
   genreDistribution: GenreEntry[]
   heatmap: HeatmapCell[]
+  lastSyncTimestamp: number | null
 }
 
 export function useStats(period: Period) {
@@ -56,15 +57,17 @@ export function useStats(period: Period) {
           { data: topArtists,  error: e2 },
           { data: genreDist,   error: e3 },
           { data: heatmap,     error: e4 },
+          { data: syncData,    error: e5 },
         ] = await Promise.all([
           supabase.rpc('get_summary',            { period }),
           supabase.rpc('get_top_tracks',         { period, lim: 10 }),
           supabase.rpc('get_top_artists',        { period, lim: 10 }),
           supabase.rpc('get_genre_distribution', { period, lim: 10 }),
           supabase.rpc('get_listening_heatmap',  { period }),
+          supabase.from('sync_state').select('value').eq('key', 'lastfm_last_synced_at').maybeSingle(),
         ])
 
-        const firstErr = e0 ?? e1 ?? e2 ?? e3 ?? e4
+        const firstErr = e0 ?? e1 ?? e2 ?? e3 ?? e4 ?? e5
         if (firstErr) throw firstErr
 
         const summary: Summary = summaryRows?.[0] ?? {
@@ -79,6 +82,7 @@ export function useStats(period: Period) {
           topArtists:        (topArtists as TopArtist[])  ?? [],
           genreDistribution: (genreDist  as GenreEntry[]) ?? [],
           heatmap:           (heatmap    as HeatmapCell[]) ?? [],
+          lastSyncTimestamp: syncData?.value ? parseInt(syncData.value) : null,
         })
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')

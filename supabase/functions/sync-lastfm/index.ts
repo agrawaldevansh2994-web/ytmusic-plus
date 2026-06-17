@@ -43,22 +43,48 @@ async function fetchRecentTracks(from: number | null, page = 1): Promise<any> {
   return res.json();
 }
 
+function cleanTitle(title: string): string {
+  return title
+    .replace(/\s*\(From\s+[""\u201c\u201d].*?[""\u201c\u201d][^)]*\)/gi, '')
+    .replace(/\s*\[From\s+[""\u201c\u201d].*?[""\u201c\u201d][^)]*\]/gi, '')
+    .replace(/\s*[\(\[](feat|ft)\..*?[\)\]]/gi, '')
+    .replace(/\s*[\(\[](remix|live|official|video|lyric|audio|version|edit)[^\)\]]*[\)\]]/gi, '')
+    .trim();
+}
+
 async function fetchTrackTags(artist: string, track: string): Promise<string[]> {
+  // 1. Try track-level tags with cleaned title
   try {
     const params = new URLSearchParams({
       method: 'track.getTopTags',
       artist,
-      track,
+      track: cleanTitle(track),
       api_key: LASTFM_API_KEY,
       format: 'json',
     });
     const res = await fetch(`${LASTFM_BASE}?${params}`);
     const data = await res.json();
-    const tags = data?.toptags?.tag ?? [];
-    return tags
+    const tags: string[] = (data?.toptags?.tag ?? [])
       .slice(0, 5)
       .map((t: any) => t.name.toLowerCase())
-      .filter((t: string) => t.length > 0);
+      .filter((t: string) => t.length > 0 && t !== 'seen live');
+    if (tags.length > 0) return tags;
+  } catch { /* fall through */ }
+
+  // 2. Fallback: artist-level tags
+  try {
+    const params = new URLSearchParams({
+      method: 'artist.getTopTags',
+      artist,
+      api_key: LASTFM_API_KEY,
+      format: 'json',
+    });
+    const res = await fetch(`${LASTFM_BASE}?${params}`);
+    const data = await res.json();
+    return (data?.toptags?.tag ?? [])
+      .slice(0, 5)
+      .map((t: any) => t.name.toLowerCase())
+      .filter((t: string) => t.length > 0 && t !== 'seen live');
   } catch {
     return [];
   }

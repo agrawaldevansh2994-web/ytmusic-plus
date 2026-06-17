@@ -11,25 +11,65 @@ const supabase = createClient(
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function fetchTrackTags(artist: string, track: string): Promise<string[]> {
+// Strip common suffixes that confuse Last.fm track lookup
+function cleanTitle(title: string): string {
+  return title
+    // (From "Film Name" Soundtrack) / (From "Film Name")
+    .replace(/\s*\(From\s+[""\u201c\u201d].*?[""\u201c\u201d][^)]*\)/gi, '')
+    .replace(/\s*\[From\s+[""\u201c\u201d].*?[""\u201c\u201d][^)]*\]/gi, '')
+    // (feat. X) / [feat. X] / (ft. X)
+    .replace(/\s*[\(\[](feat|ft)\..*?[\)\]]/gi, '')
+    // (Remix) / [Official Video] / (Live) etc
+    .replace(/\s*[\(\[](remix|live|official|video|lyric|audio|version|edit)[^\)\]]*[\)\]]/gi, '')
+    .trim();
+}
+
+async function fetchTagsForTrack(artist: string, track: string): Promise<string[]> {
   try {
     const params = new URLSearchParams({
       method: 'track.getTopTags',
       artist,
-      track,
+      track: cleanTitle(track),
       api_key: LASTFM_API_KEY,
       format: 'json',
     });
     const res = await fetch(`${LASTFM_BASE}?${params}`);
     const data = await res.json();
-    const tags = data?.toptags?.tag ?? [];
-    return tags
+    const tags: string[] = (data?.toptags?.tag ?? [])
       .slice(0, 5)
       .map((t: any) => t.name.toLowerCase())
-      .filter((t: string) => t.length > 0);
+      .filter((t: string) => t.length > 0 && t !== 'seen live');
+    if (tags.length > 0) return tags;
+  } catch { /* fall through */ }
+  return [];
+}
+
+async function fetchTagsForArtist(artist: string): Promise<string[]> {
+  try {
+    const params = new URLSearchParams({
+      method: 'artist.getTopTags',
+      artist,
+      api_key: LASTFM_API_KEY,
+      format: 'json',
+    });
+    const res = await fetch(`${LASTFM_BASE}?${params}`);
+    const data = await res.json();
+    return (data?.toptags?.tag ?? [])
+      .slice(0, 5)
+      .map((t: any) => t.name.toLowerCase())
+      .filter((t: string) => t.length > 0 && t !== 'seen live');
   } catch {
     return [];
   }
+}
+
+async function fetchBestTags(artist: string, track: string): Promise<string[]> {
+  // 1. Try track-level tags first
+  const trackTags = await fetchTagsForTrack(artist, track);
+  if (trackTags.length > 0) return trackTags;
+
+  // 2. Fall back to artist-level tags
+  return fetchTagsForArtist(artist);
 }
 
 Deno.serve(async (_req: Request) => {
@@ -54,10 +94,10 @@ Deno.serve(async (_req: Request) => {
     }
 
     let updated = 0;
-    let skipped = 0; // Last.fm had no tags for this track
+    let skipped = 0;
 
     for (const track of tracks) {
-      const tags = await fetchTrackTags(track.artist, track.title);
+      const tags = await fetchBestTags(track.artist, track.title);
 
       if (tags.length > 0) {
         await supabase
@@ -69,17 +109,12 @@ Deno.serve(async (_req: Request) => {
         skipped++;
       }
 
-      // Stay well under Last.fm's rate limit
-      await delay(250);
+      // Stay well under Last.fm rate limit (5 req/s)
+      await delay(220);
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        total: tracks.length,
-        updated,
-        skipped, // tracks Last.fm doesn't have tags for
-      }),
+      JSON.stringify({ success: true, total: tracks.length, updated, skipped }),
       { headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {

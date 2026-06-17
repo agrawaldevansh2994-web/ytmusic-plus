@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useShuffle, useTasteSummary } from '../hooks/useShuffle'
 import type { ShuffleTrack } from '../hooks/useShuffle'
+import { supabase } from '../lib/supabase'
 
 const PERSONA_META: Record<string, { emoji: string; label: string; color: string }> = {
   morning:   { emoji: '🌅', label: 'Morning listener',   color: 'from-amber-900/30 to-transparent' },
@@ -49,27 +50,18 @@ async function createYouTubePlaylist(
   return playlistId
 }
 
-// ── Google OAuth PKCE helper ──────────────────────────────────────────────────
+// ── Google OAuth helper ───────────────────────────────────────────────────────
 function signInWithGoogle(): void {
   const params = new URLSearchParams({
     client_id: YT_CLIENT_ID,
     redirect_uri: `${window.location.origin}/shuffle`,
-    response_type: 'token',
+    response_type: 'code',
+    access_type: 'offline',
+    prompt: 'consent',
     scope: 'https://www.googleapis.com/auth/youtube',
     include_granted_scopes: 'true',
   })
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
-}
-
-function getAndStoreToken(): string | null {
-  const hash = new URLSearchParams(window.location.hash.slice(1))
-  const token = hash.get('access_token')
-  if (token) {
-    sessionStorage.setItem('yt_access_token', token)
-    window.history.replaceState({}, '', window.location.pathname)
-    return token
-  }
-  return sessionStorage.getItem('yt_access_token')
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -79,7 +71,39 @@ export default function Shuffle() {
   const [size, setSize] = useState(25)
   const [pushState, setPushState] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
   const [ytPlaylistUrl, setYtPlaylistUrl] = useState<string | null>(null)
-  const [oauthToken, setOauthToken] = useState(() => getAndStoreToken())
+  const [oauthToken, setOauthToken] = useState(() => sessionStorage.getItem('yt_access_token'))
+
+  useEffect(() => {
+    const handleCode = async () => {
+      const searchParams = new URLSearchParams(window.location.search)
+      const code = searchParams.get('code')
+      if (code) {
+        setPushState('pushing')
+        window.history.replaceState({}, '', window.location.pathname)
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('youtube-oauth-exchange', {
+            body: {
+              code,
+              redirectUri: `${window.location.origin}/shuffle`
+            }
+          })
+          
+          if (error) throw error
+          if (data?.access_token) {
+            sessionStorage.setItem('yt_access_token', data.access_token)
+            setOauthToken(data.access_token)
+            setPushState('idle')
+          }
+        } catch (err) {
+          console.error('Failed to exchange token', err)
+          setPushState('error')
+        }
+      }
+    }
+    
+    handleCode()
+  }, [])
 
   const persona = PERSONA_META[summary?.persona ?? 'evening']
 

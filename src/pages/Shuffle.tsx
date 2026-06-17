@@ -16,6 +16,17 @@ const TIER_META: Record<string, { emoji: string; label: string; bg: string; text
   low:  { emoji: '🎲', label: 'Discovery',  bg: 'bg-zinc-700/40',   text: 'text-zinc-400'  },
 }
 
+const VIBES = [
+  { id: 'all', label: 'Everything' },
+  { id: 'techno', label: 'Techno' },
+  { id: 'house', label: 'House' },
+  { id: 'rnb', label: 'R&B' },
+  { id: 'hip-hop', label: 'Hip-Hop' },
+  { id: 'pop', label: 'Pop' },
+  { id: 'indie', label: 'Indie' },
+  { id: 'rock', label: 'Rock' }
+]
+
 const YT_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
 // ── YouTube playlist creation via OAuth ───────────────────────────────────────
@@ -69,6 +80,7 @@ export default function Shuffle() {
   const { summary, loading: summaryLoading } = useTasteSummary()
   const { playlist, loading, generated, generate } = useShuffle()
   const [size, setSize] = useState(25)
+  const [vibe, setVibe] = useState('all')
   const [pushState, setPushState] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
   const [ytPlaylistUrl, setYtPlaylistUrl] = useState<string | null>(null)
   const [oauthToken, setOauthToken] = useState(() => sessionStorage.getItem('yt_access_token'))
@@ -114,7 +126,7 @@ export default function Shuffle() {
   }
 
   async function handleGenerate(n: number) {
-    await generate(n)
+    await generate(n, vibe)
   }
 
   async function handlePushToYouTube() {
@@ -173,6 +185,23 @@ export default function Shuffle() {
           </div>
         </div>
       )}
+
+      {/* ── Vibe Selector ─────────────────────────────────────────── */}
+      <div className="flex gap-2 overflow-x-auto pb-4 mb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+        {VIBES.map((v) => (
+          <button
+            key={v.id}
+            onClick={() => setVibe(v.id)}
+            className={`shrink-0 px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200 border ${
+              vibe === v.id
+                ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20'
+                : 'bg-zinc-900/60 text-zinc-400 border-zinc-800 hover:text-white hover:bg-zinc-800'
+            }`}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
 
       {/* ── Controls ──────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-4">

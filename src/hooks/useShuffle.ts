@@ -47,9 +47,13 @@ export function useShuffle() {
   const [loading, setLoading] = useState(false)
   const [generated, setGenerated] = useState(false)
 
-  async function generate(size = 25) {
+  async function generate(size = 25, targetGenre?: string) {
     setLoading(true)
-    const { data, error } = await supabase.rpc('generate_smart_shuffle', { playlist_size: size })
+    const payload: any = { playlist_size: size }
+    if (targetGenre && targetGenre !== 'all') {
+      payload.target_genre = targetGenre
+    }
+    const { data, error } = await supabase.rpc('generate_smart_shuffle', payload)
     if (!error && data) {
       setPlaylist(data as ShuffleTrack[])
       setGenerated(true)

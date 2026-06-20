@@ -12,3 +12,7 @@ Thumbs.db
 *.tsbuildinfo
 
 .vercel
+
+# Secrets
+client_secret_*.json
+supabase/.temp/

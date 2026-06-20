@@ -1,0 +1,169 @@
+<h2 class="sr-only">YouTube Music custom extension — 7 modules with ~49 features rated by build difficulty, plus tech stack</h2>
+<div style="padding:0.25rem 0 2rem;">
+
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap;">
+  <span style="font-size:11px;color:var(--color-text-tertiary);letter-spacing:0.07em;text-transform:uppercase;margin-right:4px;">Difficulty</span>
+  <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--color-text-secondary);"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;display:inline-block;flex-shrink:0;"></span>Easy</span>
+  <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--color-text-secondary);"><span style="width:7px;height:7px;border-radius:50%;background:#BA7517;display:inline-block;flex-shrink:0;"></span>Medium</span>
+  <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--color-text-secondary);"><span style="width:7px;height:7px;border-radius:50%;background:#E24B4A;display:inline-block;flex-shrink:0;"></span>Advanced</span>
+  <div style="flex:1;min-width:20px;"></div>
+  <button id="fa" onclick="setFilter('all')" style="font-size:12px;padding:4px 10px;font-weight:500;border-color:var(--color-border-primary);">All</button>
+  <button id="fe" onclick="setFilter('easy')" style="font-size:12px;padding:4px 10px;">Easy</button>
+  <button id="fm" onclick="setFilter('medium')" style="font-size:12px;padding:4px 10px;">Medium</button>
+  <button id="fv" onclick="setFilter('advanced')" style="font-size:12px;padding:4px 10px;">Advanced</button>
+</div>
+
+<div id="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;">
+
+<div class="card" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;"><i class="ti ti-arrows-shuffle" style="font-size:16px;color:#7F77DD;" aria-hidden="true"></i><span style="font-size:11px;font-weight:500;color:#7F77DD;text-transform:uppercase;letter-spacing:0.08em;">Smart shuffle</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.4;">Control exactly how your queue gets built</p>
+  <div class="feats">
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">BPM + energy mood-based shuffle</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Time-of-day profiles (morning / workout / wind-down)</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">No same artist twice in N songs</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Genre-locked shuffle mode</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Weighted by likes, play count, and skip rate</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Exclude songs played in last N hours</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Save + restore named queue snapshots</span></div>
+  </div>
+  <button onclick="sendPrompt('Let\'s build the Smart Shuffle module for my YouTube Music Chrome extension — walk me through the architecture, how to intercept the player state, and the code for mood-based + weighted shuffle.')" style="margin-top:12px;width:100%;font-size:12px;padding:6px 12px;">Build this module ↗</button>
+</div>
+
+<div class="card" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;"><i class="ti ti-list-check" style="font-size:16px;color:#1D9E75;" aria-hidden="true"></i><span style="font-size:11px;font-weight:500;color:#1D9E75;text-transform:uppercase;letter-spacing:0.08em;">Playlist automation</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.4;">Rule engine that manages playlists for you</p>
+  <div class="feats">
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Like + condition → auto-add to playlist</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Multi-condition rules (artist AND genre → playlist)</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Duplicate detector across all playlists</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Bulk apply rules retroactively to library</span></div>
+    <div class="feat" data-diff="advanced" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#E24B4A;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">"Similar vibe" auto-bucketing</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Rule history log + undo</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">One-click "add to all matching playlists"</span></div>
+  </div>
+  <button onclick="sendPrompt('Let\'s build the Playlist Automation module for my YouTube Music Chrome extension — design the rule engine, show how to intercept YT Music API calls to detect likes, and handle multi-condition logic.')" style="margin-top:12px;width:100%;font-size:12px;padding:6px 12px;">Build this module ↗</button>
+</div>
+
+<div class="card" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;"><i class="ti ti-brain" style="font-size:16px;color:#D85A30;" aria-hidden="true"></i><span style="font-size:11px;font-weight:500;color:#D85A30;text-transform:uppercase;letter-spacing:0.08em;">Taste intelligence</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.4;">Build a local model of what you actually like</p>
+  <div class="feats">
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Local skip / like signal tracker</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Block artists or genres from radio forever</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Genre affinity map that updates over time</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Time-of-day taste preference learning</span></div>
+    <div class="feat" data-diff="advanced" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#E24B4A;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Per-song vibe score via TensorFlow.js</span></div>
+    <div class="feat" data-diff="advanced" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#E24B4A;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Re-rank YT recommendations by taste score</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Cross-playlist taste profile + export</span></div>
+  </div>
+  <button onclick="sendPrompt('Let\'s build the Taste Intelligence module for my YouTube Music Chrome extension — how do we track signals locally in IndexedDB, build a taste profile, and use it to re-rank recommendations without any external server?')" style="margin-top:12px;width:100%;font-size:12px;padding:6px 12px;">Build this module ↗</button>
+</div>
+
+<div class="card" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;"><i class="ti ti-palette" style="font-size:16px;color:#378ADD;" aria-hidden="true"></i><span style="font-size:11px;font-weight:500;color:#378ADD;text-transform:uppercase;letter-spacing:0.08em;">Visual overhaul</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.4;">Make YT Music look and feel exactly yours</p>
+  <div class="feats">
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">AMOLED + custom theme library</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Color-coded playlists with custom icons</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Compact player bar mode</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Hide recommended clutter + shelf noise</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Ambient album art background (CSS color extraction)</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Playlist artwork collage auto-generator</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Custom sidebar + pinned playlist shortcuts</span></div>
+  </div>
+  <button onclick="sendPrompt('Let\'s build the Visual Overhaul module for my YouTube Music Chrome extension — start with AMOLED dark theme injection, then ambient album art background using Canvas color extraction.')" style="margin-top:12px;width:100%;font-size:12px;padding:6px 12px;">Build this module ↗</button>
+</div>
+
+<div class="card" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;"><i class="ti ti-keyboard" style="font-size:16px;color:#BA7517;" aria-hidden="true"></i><span style="font-size:11px;font-weight:500;color:#BA7517;text-transform:uppercase;letter-spacing:0.08em;">Controls & UX</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.4;">Power-user controls the stock player is missing</p>
+  <div class="feats">
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Custom keyboard shortcuts (global + page-level)</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Playback speed control (0.5× to 2×)</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Sleep timer (stop after N minutes)</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Lyrics always-visible toggle</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Save current queue as a new playlist</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">A–B loop (repeat a timestamp range)</span></div>
+    <div class="feat" data-diff="advanced" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;"><span class="dot" style="background:#E24B4A;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Crossfade between tracks via Web Audio API</span></div>
+  </div>
+  <button onclick="sendPrompt('Let\'s build the Controls & UX module for my YouTube Music Chrome extension — keyboard shortcuts, sleep timer, and A–B loop first. Then show me how crossfade works via Web Audio API.')" style="margin-top:12px;width:100%;font-size:12px;padding:6px 12px;">Build this module ↗</button>
+</div>
+
+<div class="card" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;"><i class="ti ti-chart-bar" style="font-size:16px;color:#639922;" aria-hidden="true"></i><span style="font-size:11px;font-weight:500;color:#639922;text-transform:uppercase;letter-spacing:0.08em;">Listening analytics</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.4;">Your own Spotify Wrapped, always-on</p>
+  <div class="feats">
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Top tracks + artists by week / month / all-time</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Genre distribution chart</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Listening heatmap (hour × day of week)</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Skip rate per artist (low skip = true love)</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Listening streak + milestone badges</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">New vs familiar discovery ratio</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Export full history to CSV / JSON</span></div>
+  </div>
+  <button onclick="sendPrompt('Let\'s build the Listening Analytics module for my YouTube Music Chrome extension — IndexedDB schema for play history, the stats aggregation logic, and the dashboard UI.')" style="margin-top:12px;width:100%;font-size:12px;padding:6px 12px;">Build this module ↗</button>
+</div>
+
+<div class="card" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;"><i class="ti ti-bell" style="font-size:16px;color:#D4537E;" aria-hidden="true"></i><span style="font-size:11px;font-weight:500;color:#D4537E;text-transform:uppercase;letter-spacing:0.08em;">Smart alerts</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.4;">Proactive nudges tuned to your listening context</p>
+  <div class="feats">
+    <div class="feat" data-diff="advanced" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#E24B4A;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">New release alert for fav artists (YT Data API)</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">"You haven't heard X in 2 weeks" nudge</span></div>
+    <div class="feat" data-diff="medium" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#BA7517;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Daily listening summary notification</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Stale playlist alert (no new adds in N days)</span></div>
+    <div class="feat" data-diff="advanced" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);"><span class="dot" style="background:#E24B4A;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Mood suggestion by time of day + weather</span></div>
+    <div class="feat" data-diff="easy" style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;"><span class="dot" style="background:#1D9E75;"></span><span style="font-size:13px;line-height:1.35;color:var(--color-text-primary);">Listening milestone badges (1000 songs, 100 hrs)</span></div>
+  </div>
+  <button onclick="sendPrompt('Let\'s build the Smart Alerts module for my YouTube Music Chrome extension — Chrome Alarms API architecture, how to poll YouTube Data API for new releases, and the notification system.')" style="margin-top:12px;width:100%;font-size:12px;padding:6px 12px;">Build this module ↗</button>
+</div>
+
+</div>
+
+<div style="margin-top:1.5rem;padding-top:1.25rem;border-top:0.5px solid var(--color-border-tertiary);">
+  <p style="font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.07em;margin:0 0 10px;">Tech stack</p>
+  <div style="display:flex;flex-wrap:wrap;gap:7px;">
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">Chrome MV3</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">Content scripts</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">Service worker</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">IndexedDB</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">chrome.storage.sync</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">Fetch interceptor</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">MutationObserver</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">Web Audio API</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">Canvas API</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">TensorFlow.js</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">YouTube Data API v3</span>
+    <span style="font-size:12px;padding:3px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);">Chrome Alarms API</span>
+  </div>
+</div>
+
+</div>
+
+<style>
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;display:inline-block;}
+</style>
+
+<script>
+var active = 'all';
+var btnMap = {all:'fa',easy:'fe',medium:'fm',advanced:'fv'};
+function setFilter(level) {
+  active = level;
+  document.querySelectorAll('.feat').forEach(function(el) {
+    el.style.display = (level === 'all' || el.dataset.diff === level) ? 'flex' : 'none';
+  });
+  document.querySelectorAll('#grid .card').forEach(function(card) {
+    var visible = Array.from(card.querySelectorAll('.feat')).filter(function(f){
+      return level === 'all' || f.dataset.diff === level;
+    }).length;
+    card.style.display = visible > 0 ? '' : 'none';
+  });
+  Object.keys(btnMap).forEach(function(l) {
+    var btn = document.getElementById(btnMap[l]);
+    if (!btn) return;
+    btn.style.fontWeight = l === level ? '500' : '';
+    btn.style.borderColor = l === level ? 'var(--color-border-primary)' : '';
+  });
+}
+</script>

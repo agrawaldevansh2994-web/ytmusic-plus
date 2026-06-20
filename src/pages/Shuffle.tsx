@@ -83,7 +83,7 @@ export default function Shuffle() {
   const [vibe, setVibe] = useState('all')
   const [pushState, setPushState] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
   const [ytPlaylistUrl, setYtPlaylistUrl] = useState<string | null>(null)
-  const [oauthToken, setOauthToken] = useState(() => sessionStorage.getItem('yt_access_token'))
+  const [oauthToken, setOauthToken] = useState(() => localStorage.getItem('yt_access_token'))
 
   useEffect(() => {
     const handleCode = async () => {
@@ -103,13 +103,24 @@ export default function Shuffle() {
           
           if (error) throw error
           if (data?.access_token) {
-            sessionStorage.setItem('yt_access_token', data.access_token)
+            localStorage.setItem('yt_access_token', data.access_token)
+            // also store an expiry timestamp, expires_in is in seconds
+            const expiresAt = Date.now() + (data.expires_in * 1000)
+            localStorage.setItem('yt_token_expires_at', expiresAt.toString())
             setOauthToken(data.access_token)
             setPushState('idle')
           }
         } catch (err) {
           console.error('Failed to exchange token', err)
           setPushState('error')
+        }
+      } else {
+        // Check if token is expired
+        const expiresAt = localStorage.getItem('yt_token_expires_at')
+        if (expiresAt && Date.now() > parseInt(expiresAt)) {
+           localStorage.removeItem('yt_access_token')
+           localStorage.removeItem('yt_token_expires_at')
+           setOauthToken(null)
         }
       }
     }
@@ -120,7 +131,8 @@ export default function Shuffle() {
   const persona = PERSONA_META[summary?.persona ?? 'evening']
 
   function handleDisconnect() {
-    sessionStorage.removeItem('yt_access_token')
+    localStorage.removeItem('yt_access_token')
+    localStorage.removeItem('yt_token_expires_at')
     setOauthToken(null)
     setPushState('idle')
   }
@@ -141,7 +153,8 @@ export default function Shuffle() {
       setYtPlaylistUrl(`https://music.youtube.com/playlist?list=${playlistId}`)
       setPushState('done')
     } catch {
-      sessionStorage.removeItem('yt_access_token')
+      localStorage.removeItem('yt_access_token')
+      localStorage.removeItem('yt_token_expires_at')
       setOauthToken(null)
       setPushState('error')
     }

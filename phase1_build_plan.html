@@ -1,0 +1,221 @@
+
+<h2 class="sr-only">Phase 1 build plan for YouTube Music Chrome extension — 4 milestones covering scaffold, controls, visual overhaul, and data tracker, totalling 14 files and 15 features</h2>
+
+<style>
+.ms-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--border-radius-md)}
+.badge-blue{background:#E6F1FB;color:#0C447C}
+.badge-amber{background:#FAEEDA;color:#633806}
+.badge-purple{background:#EEEDFE;color:#3C3489}
+.badge-green{background:#EAF3DE;color:#27500A}
+@media(prefers-color-scheme:dark){
+.badge-blue{background:#0C447C;color:#B5D4F4}
+.badge-amber{background:#633806;color:#FAC775}
+.badge-purple{background:#3C3489;color:#CECBF6}
+.badge-green{background:#27500A;color:#C0DD97}
+}
+.ms-card{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:16px 18px;background:var(--color-background-secondary);margin-bottom:10px}
+.ms-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ms-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.ms-meta{margin-left:auto;font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono)}
+.ms-desc{font-size:13px;color:var(--color-text-secondary);margin-bottom:14px;line-height:1.5}
+.ms-body{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px}
+@media(max-width:500px){.ms-body{grid-template-columns:1fr}}
+.ms-slabel{font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:7px;font-family:var(--font-mono)}
+.ms-feat{display:flex;gap:7px;align-items:flex-start;font-size:12px;color:var(--color-text-secondary);padding:2.5px 0;line-height:1.45}
+.ms-dot{width:5px;height:5px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.ms-files{font-family:var(--font-mono);font-size:11px;line-height:2}
+.ms-files .dir{color:var(--color-text-tertiary)}
+.ms-files .nf{color:var(--color-text-success)}
+.ms-files .st{color:var(--color-text-info)}
+.ms-unlocks{border-top:0.5px solid var(--color-border-tertiary);padding-top:10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ms-ul-lbl{font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono);flex-shrink:0}
+.ms-tag{font-size:11px;padding:2px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);color:var(--color-text-tertiary)}
+.p1-hdr{padding:1rem 0 16px}
+.p1-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.p1-tag{font-size:11px;font-family:var(--font-mono);color:var(--color-text-tertiary);letter-spacing:0.04em}
+.p1-phases{display:flex;gap:4px;align-items:center}
+.p1-pip{height:3px;width:18px;border-radius:2px;background:var(--color-border-secondary)}
+.p1-pip.on{background:var(--color-text-success)}
+.p1-h{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px}
+.p1-stats{display:flex;gap:16px;flex-wrap:wrap}
+.p1-stat{font-size:12px;color:var(--color-text-secondary)}
+.p1-stat span{color:var(--color-text-primary);font-weight:500}
+.p2-box{padding:14px 16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary);margin-top:4px}
+.p2-lbl{font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono);margin-bottom:10px}
+.p2-chips{display:flex;flex-wrap:wrap;gap:6px}
+.p2-chip{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);cursor:pointer;background:var(--color-background-primary)}
+.p2-chip:hover{border-color:var(--color-border-primary);color:var(--color-text-primary)}
+</style>
+
+<div class="p1-hdr">
+  <div class="p1-top">
+    <span class="p1-tag">ytmusic-plus</span>
+    <span class="p1-tag">·</span>
+    <div class="p1-phases">
+      <div class="p1-pip on"></div>
+      <div class="p1-pip"></div>
+      <div class="p1-pip"></div>
+      <div class="p1-pip"></div>
+    </div>
+    <span class="p1-tag">phase 1 of 4</span>
+  </div>
+  <div class="p1-h">Phase 1 — foundation & quick wins</div>
+  <div class="p1-stats">
+    <div class="p1-stat"><span>4</span> milestones</div>
+    <div class="p1-stat"><span>14</span> files</div>
+    <div class="p1-stat"><span>15</span> features shipped</div>
+    <div class="p1-stat"><span>~12 hrs</span> estimated</div>
+    <div class="p1-stat">all <span>easy</span> difficulty</div>
+  </div>
+</div>
+
+<div class="ms-card">
+  <div class="ms-header">
+    <span class="ms-badge badge-blue">M1</span>
+    <span class="ms-title">Scaffold</span>
+    <span class="ms-meta">8 files · ~3 hrs</span>
+  </div>
+  <div class="ms-desc">The wiring every other module plugs into. Build this first — nothing else can be imported, tested, or loaded until manifest, storage, and db.js exist.</div>
+  <div class="ms-body">
+    <div>
+      <div class="ms-slabel">What gets built</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-info)"></span>MV3 manifest with all permissions declared upfront</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-info)"></span>Service worker + message bus (content ↔ background)</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-info)"></span>chrome.storage.sync wrapper with typed defaults</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-info)"></span>IndexedDB schema: play_events, song_scores, blocked_list</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-info)"></span>Popup settings shell (skeleton for now)</div>
+    </div>
+    <div>
+      <div class="ms-slabel">Files created</div>
+      <div class="ms-files">
+        <div><span class="nf">manifest.json</span></div>
+        <div><span class="dir">background/ </span><span class="nf">service-worker.js</span></div>
+        <div><span class="dir">content/ </span><span class="nf">index.js</span></div>
+        <div><span class="dir">utils/ </span><span class="nf">storage.js</span></div>
+        <div><span class="dir">utils/ </span><span class="nf">db.js</span></div>
+        <div><span class="dir">popup/ </span><span class="nf">popup.html</span></div>
+        <div><span class="dir">popup/ </span><span class="nf">popup.css</span></div>
+        <div><span class="dir">popup/ </span><span class="nf">popup.js</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ms-unlocks">
+    <span class="ms-ul-lbl">unlocks →</span>
+    <span class="ms-tag">all modules</span>
+    <span class="ms-tag">phase 2 weighted shuffle</span>
+    <span class="ms-tag">phase 3 analytics</span>
+  </div>
+</div>
+
+<div class="ms-card">
+  <div class="ms-header">
+    <span class="ms-badge badge-amber">M2</span>
+    <span class="ms-title">Controls & UX</span>
+    <span class="ms-meta">1 file · 4 easy features · ~2 hrs</span>
+  </div>
+  <div class="ms-desc">Four power-user controls the stock player is missing. All DOM/event-based — no API calls, no async. Ship this second: you'll want it working while styling things in M3.</div>
+  <div class="ms-body">
+    <div>
+      <div class="ms-slabel">Features</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Custom keyboard shortcuts (space, ← →, shift+← →, +/−)</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Playback speed control (0.5× → 2×)</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Sleep timer — stop after N minutes</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Lyrics always-visible toggle</div>
+    </div>
+    <div>
+      <div class="ms-slabel">Files created</div>
+      <div class="ms-files">
+        <div><span class="dir">content/modules/ </span><span class="nf">controls.js</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ms-unlocks">
+    <span class="ms-ul-lbl">unlocks →</span>
+    <span class="ms-tag">A–B loop (phase 2)</span>
+    <span class="ms-tag">crossfade via Web Audio (phase 3)</span>
+  </div>
+</div>
+
+<div class="ms-card">
+  <div class="ms-header">
+    <span class="ms-badge badge-purple">M3</span>
+    <span class="ms-title">Visual overhaul</span>
+    <span class="ms-meta">4 files · 5 easy features · ~4 hrs</span>
+  </div>
+  <div class="ms-desc">Immediate look & feel upgrade. All CSS injection + MutationObserver DOM tweaks, no API calls. The most satisfying milestone to ship — run it in parallel while M4 quietly collects data.</div>
+  <div class="ms-body">
+    <div>
+      <div class="ms-slabel">Features</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>AMOLED + custom theme library (3 built-in themes)</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Color-coded playlists with custom icons</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Compact player bar mode</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Hide recommended shelf noise</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Custom sidebar + pinned playlist shortcuts</div>
+    </div>
+    <div>
+      <div class="ms-slabel">Files created</div>
+      <div class="ms-files">
+        <div><span class="dir">content/modules/ </span><span class="nf">theme.js</span></div>
+        <div><span class="dir">content/modules/ </span><span class="nf">ui-tweaks.js</span></div>
+        <div><span class="dir">themes/ </span><span class="nf">amoled.css</span></div>
+        <div><span class="dir">themes/ </span><span class="nf">midnight.css</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ms-unlocks">
+    <span class="ms-ul-lbl">unlocks →</span>
+    <span class="ms-tag">ambient album art (phase 2)</span>
+    <span class="ms-tag">playlist collage generator (phase 2)</span>
+  </div>
+</div>
+
+<div class="ms-card">
+  <div class="ms-header">
+    <span class="ms-badge badge-green">M4</span>
+    <span class="ms-title">Data tracker</span>
+    <span class="ms-meta">1 file · data layer · ~3 hrs</span>
+  </div>
+  <div class="ms-desc">Silent observer. Records every play, skip, and like into IndexedDB. Invisible to the user, but the smarter Phase 2 features only work if this has been running and accumulating signal.</div>
+  <div class="ms-body">
+    <div>
+      <div class="ms-slabel">What it tracks</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>MutationObserver → detects now-playing changes</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>videoId, title, artist, timestamp, duration</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Skip detection (< 30s elapsed → skip signal)</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Like / dislike button click events</div>
+      <div class="ms-feat"><span class="ms-dot" style="background:var(--color-text-success)"></span>Incremental updates to song_scores store</div>
+    </div>
+    <div>
+      <div class="ms-slabel">Files created</div>
+      <div class="ms-files">
+        <div><span class="dir">content/modules/ </span><span class="nf">tracker.js</span></div>
+      </div>
+      <div class="ms-slabel" style="margin-top:12px">Db stores written to</div>
+      <div class="ms-files">
+        <div class="st">play_events</div>
+        <div class="st">song_scores</div>
+      </div>
+    </div>
+  </div>
+  <div class="ms-unlocks">
+    <span class="ms-ul-lbl">unlocks →</span>
+    <span class="ms-tag">weighted shuffle (phase 2)</span>
+    <span class="ms-tag">taste intelligence (phase 2)</span>
+    <span class="ms-tag">analytics dashboards (phase 2)</span>
+    <span class="ms-tag">playlist automation (phase 2)</span>
+  </div>
+</div>
+
+<div class="p2-box">
+  <div class="p2-lbl">After phase 1 ships → phase 2 smart engine (click any to jump ahead)</div>
+  <div class="p2-chips">
+    <span class="p2-chip" onclick="sendPrompt('Build weighted shuffle by play count and skip rate')">Weighted shuffle</span>
+    <span class="p2-chip" onclick="sendPrompt('Build no-same-artist-in-N-songs for Smart Shuffle')">No artist repeat</span>
+    <span class="p2-chip" onclick="sendPrompt('Build genre affinity map that updates from play history')">Genre affinity map</span>
+    <span class="p2-chip" onclick="sendPrompt('Build ambient album art background using Canvas color extraction')">Ambient album art</span>
+    <span class="p2-chip" onclick="sendPrompt('Build A-B loop feature for Controls module')">A–B loop</span>
+    <span class="p2-chip" onclick="sendPrompt('Build like → auto-add rule engine for Playlist Automation')">Like → auto-add rules</span>
+    <span class="p2-chip" onclick="sendPrompt('Build listening analytics dashboard with top tracks and heatmap')">Analytics dashboard</span>
+    <span class="p2-chip" onclick="sendPrompt('Build block artist or genre from radio feature')">Block from radio</span>
+  </div>
+</div>

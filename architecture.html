@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YTMusic+ Architecture Pipeline</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: #18181b;
+      --text-main: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #3b82f6; /* Blue-500 */
+      --accent-glow: rgba(59, 130, 246, 0.2);
+      --step-line: rgba(255, 255, 255, 0.1);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+    }
+
+    .pipeline {
+      position: relative;
+      padding-left: 3rem;
+    }
+
+    /* The vertical connecting line */
+    .pipeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 17px;
+      width: 4px;
+      height: 100%;
+      background: var(--step-line);
+      border-radius: 2px;
+    }
+
+    .step {
+      position: relative;
+      margin-bottom: 4rem;
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    /* The glowing dot on the timeline */
+    .step::before {
+      content: '';
+      position: absolute;
+      top: 2rem;
+      left: -3rem;
+      width: 20px;
+      height: 20px;
+      background: var(--bg);
+      border: 4px solid var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 15px var(--accent-glow);
+      z-index: 2;
+    }
+
+    .step-number {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    h2 { font-size: 1.5rem; margin-bottom: 1rem; color: #fff; }
+    p { color: var(--text-muted); margin-bottom: 1rem; }
+
+    .tech-stack {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tech-tag {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: #e4e4e7;
+    }
+
+    .code-block {
+      background: #000;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: monospace;
+      color: #10b981;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    @media (max-width: 600px) {
+      .pipeline { padding-left: 2rem; }
+      .step::before { left: -2rem; width: 16px; height: 16px; }
+      .pipeline::before { left: -14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Where The Magic <span>Lives</span></h1>
+      <p class="subtitle">The complete data pipeline of the YTMusic+ Engine</p>
+    </header>
+
+    <div class="pipeline">
+
+      <!-- STEP 1 -->
+      <div class="step">
+        <div class="step-number">Phase 1: Ingestion</div>
+        <h2>The Data Source (Last.fm &rarr; Supabase)</h2>
+        <p>The system doesn't fetch "new" music randomly from the internet. It relies on your personal history. As you listen to music on Spotify/YouTube, Last.fm logs it (scrobbling).</p>
+        <p>Our <strong>Edge Function (`sync-lastfm`)</strong> wakes up, pulls your latest plays from the Last.fm API, and saves them permanently into your <strong>Supabase Database</strong> (filling the <code>tracks</code> and <code>plays</code> tables).</p>
+        <div class="tech-stack">
+          <div class="tech-tag">Last.fm API</div>
+          <div class="tech-tag">Deno Edge Function</div>
+          <div class="tech-tag">PostgreSQL</div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-number">Phase 2: The Brain</div>
+        <h2>Where The Algorithm Lives (Supabase RPC)</h2>
+        <p>When you click "Generate" in React, it doesn't do the math on the frontend. React sends a request to a <strong>PostgreSQL Remote Procedure Call (RPC)</strong> named <code>generate_smart_shuffle</code>.</p>
+        <p><strong>This is where the algorithm lives.</strong> Doing this inside the database is lightning fast because the data never has to travel across the internet to be calculated.</p>
+        <p>The database calculates the <strong>Affinity Score</strong> for thousands of your tracks instantly, applies your Vibe Filter (e.g., Techno), sorts them into the 45% / 35% / 20% buckets, randomizes them, and shoots exactly 50 tracks back to React.</p>
+        <div class="tech-stack">
+          <div class="tech-tag">Supabase RPC</div>
+          <div class="tech-tag">PL/pgSQL</div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-number">Phase 3: The Translation</div>
+        <h2>Finding the YouTube Videos (`resolve-yt-ids`)</h2>
+        <p>We now have 50 great tracks, but they are just text (e.g., "Daft Punk - One More Time"). YouTube doesn't know what to do with that. We need the specific 11-character YouTube Video IDs.</p>
+        <p>React sends the 50 tracks to the <strong>`resolve-yt-ids` Edge Function</strong>. This function uses a stealthy scraper (<code>youtube-sr</code>) to search YouTube for free, completely bypassing Google's strict quota limits.</p>
+        <p><strong>Aggressive Caching:</strong> Once it finds the video ID, it saves it back into your Supabase database. The next time this song rolls in a shuffle, it skips the search entirely and loads instantly.</p>
+        <div class="tech-stack">
+          <div class="tech-tag">Deno Edge Function</div>
+          <div class="tech-tag">youtube-sr (Scraper)</div>
+          <div class="tech-tag">Caching</div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step">
+        <div class="step-number">Phase 4: The Execution</div>
+        <h2>Pushing to YouTube Music</h2>
+        <p>Now React holds 50 exact YouTube Video IDs. The final step is making them playable.</p>
+        <p>React uses your Google OAuth Access Token to talk directly to the <strong>YouTube Data API v3</strong>. It executes two fast commands:</p>
+        <div class="code-block">
+          1. POST /playlists (Creates "YTMusic+ Discovery")<br>
+          2. POST /playlistItems (Loops 50 times, adding each video ID)
+        </div>
+        <p>Because YouTube and YouTube Music share the same backend, the moment this finishes, the playlist instantly appears in your YouTube Music app, ready to play.</p>
+        <div class="tech-stack">
+          <div class="tech-tag">React (Frontend)</div>
+          <div class="tech-tag">Google OAuth 2.0</div>
+          <div class="tech-tag">YouTube Data API</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

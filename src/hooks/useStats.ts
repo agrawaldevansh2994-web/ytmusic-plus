@@ -41,6 +41,7 @@ export interface RecentPlay {
   played_at: string
   image_url: string | null
   youtube_video_id: string | null
+  genre_tags?: string[]
 }
 
 export interface YoutubeMatchStats {

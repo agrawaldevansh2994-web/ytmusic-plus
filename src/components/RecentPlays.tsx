@@ -59,6 +59,15 @@ export default function RecentPlays({ items, loading }: RecentPlaysProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-zinc-100 truncate leading-tight">{play.title}</p>
                   <p className="text-[11px] text-zinc-500 truncate mt-0.5">{play.artist}</p>
+                  {play.genre_tags && play.genre_tags.length > 0 && (
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {play.genre_tags.slice(0, 3).map((tag) => (
+                        <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-500 capitalize">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <span className="text-[11px] text-zinc-600 shrink-0 tabular-nums">
                   {formatTimeAgo(play.played_at)}

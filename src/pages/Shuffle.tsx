@@ -107,7 +107,6 @@ export default function Shuffle() {
           if (error) throw error
           if (data?.access_token) {
             localStorage.setItem('yt_access_token', data.access_token)
-            // also store an expiry timestamp, expires_in is in seconds
             const expiresAt = Date.now() + (data.expires_in * 1000)
             localStorage.setItem('yt_token_expires_at', expiresAt.toString())
             setOauthToken(data.access_token)
@@ -118,18 +117,38 @@ export default function Shuffle() {
           setPushState('error')
         }
       } else {
-        // Check if token is expired
+        // Check if token is expired, if so try to refresh it automatically
         const expiresAt = localStorage.getItem('yt_token_expires_at')
         if (expiresAt && Date.now() > parseInt(expiresAt)) {
-           localStorage.removeItem('yt_access_token')
-           localStorage.removeItem('yt_token_expires_at')
-           setOauthToken(null)
+          refreshAccessToken()
         }
       }
     }
     
     handleCode()
   }, [])
+
+  async function refreshAccessToken() {
+    try {
+      const { data, error } = await supabase.functions.invoke('youtube-oauth-exchange', {
+        body: { action: 'refresh' }
+      })
+      if (error) throw error
+      if (data?.access_token) {
+        localStorage.setItem('yt_access_token', data.access_token)
+        const expiresAt = Date.now() + (data.expires_in * 1000)
+        localStorage.setItem('yt_token_expires_at', expiresAt.toString())
+        setOauthToken(data.access_token)
+        return data.access_token
+      }
+    } catch (err) {
+      console.error('Failed to refresh token automatically', err)
+      localStorage.removeItem('yt_access_token')
+      localStorage.removeItem('yt_token_expires_at')
+      setOauthToken(null)
+    }
+    return null
+  }
 
   const persona = PERSONA_META[summary?.persona ?? 'evening']
 
@@ -145,20 +164,29 @@ export default function Shuffle() {
   }
 
   async function handlePushToYouTube() {
-    if (!oauthToken) {
+    let currentToken = oauthToken
+    
+    // Check if we need to refresh right before pushing
+    const expiresAt = localStorage.getItem('yt_token_expires_at')
+    if (expiresAt && Date.now() > parseInt(expiresAt)) {
+      setPushState('pushing') // show spinner during refresh
+      currentToken = await refreshAccessToken()
+    }
+
+    if (!currentToken) {
       signInWithGoogle()
       return
     }
+    
     setPushState('pushing')
     try {
       const tracks = playlist
       const title = `YTMusic+ Smart Shuffle — ${new Date().toLocaleDateString('en-IN')}`
-      const playlistId = await createYouTubePlaylist(oauthToken, title, tracks as any)
+      const playlistId = await createYouTubePlaylist(currentToken, title, tracks as any)
       const url = `https://music.youtube.com/playlist?list=${playlistId}`
       setYtPlaylistUrl(url)
       setPushState('done')
 
-      // Log this push so it shows up on the Playlists page (best-effort, non-blocking)
       supabase
         .rpc('log_manual_playlist', {
           p_title: title,
@@ -178,6 +206,7 @@ export default function Shuffle() {
           if (error) console.warn('Failed to log playlist:', error)
         })
     } catch {
+      // If it still fails, the token is likely completely invalid
       localStorage.removeItem('yt_access_token')
       localStorage.removeItem('yt_token_expires_at')
       setOauthToken(null)

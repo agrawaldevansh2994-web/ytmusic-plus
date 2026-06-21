@@ -19,7 +19,9 @@ const TIER_META: Record<string, { emoji: string; label: string; bg: string; text
 const VIBES = [
   { id: 'all', label: 'Everything' },
   { id: 'techno', label: 'Techno' },
+  { id: 'schranz', label: 'Schranz' },
   { id: 'house', label: 'House' },
+  { id: 'trance', label: 'Trance' },
   { id: 'rnb', label: 'R&B' },
   { id: 'hip-hop', label: 'Hip-Hop' },
   { id: 'pop', label: 'Pop' },

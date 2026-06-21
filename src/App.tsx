@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
 import Shuffle from './pages/Shuffle'
+import Playlists from './pages/Playlists'
 
 export default function App() {
   return (
@@ -9,6 +10,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/shuffle" element={<Shuffle />} />
+        <Route path="/playlists" element={<Playlists />} />
       </Routes>
 
       {/* ── Bottom navigation ───────────────────────────────────── */}
@@ -52,6 +54,28 @@ export default function App() {
               </svg>
               <span className={`text-[10px] font-semibold ${isActive ? 'text-white' : 'text-zinc-500'}`}>
                 Shuffle
+              </span>
+              {isActive && <span className="w-1 h-1 rounded-full bg-red-500 absolute bottom-2" />}
+            </>
+          )}
+        </NavLink>
+
+        <NavLink
+          to="/playlists"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-0.5 px-6 py-2 rounded-xl transition-colors ${
+              isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+            }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isActive ? 2.5 : 1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M9 17V5l12-2v12M9 17a3 3 0 11-6 0 3 3 0 016 0zm12-2a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className={`text-[10px] font-semibold ${isActive ? 'text-white' : 'text-zinc-500'}`}>
+                Playlists
               </span>
               {isActive && <span className="w-1 h-1 rounded-full bg-red-500 absolute bottom-2" />}
             </>

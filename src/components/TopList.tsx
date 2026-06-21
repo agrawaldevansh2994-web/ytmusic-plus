@@ -3,6 +3,7 @@ export interface TopItem {
   subtitle?: string
   play_count: number
   image_url?: string
+  genre_tags?: string[]
 }
 
 interface TopListProps {
@@ -81,6 +82,15 @@ export default function TopList({ title, items, loading }: TopListProps) {
                   </p>
                   {item.subtitle && (
                     <p className="text-[11px] text-zinc-500 truncate mt-0.5">{item.subtitle}</p>
+                  )}
+                  {item.genre_tags && item.genre_tags.length > 0 && (
+                    <div className="flex gap-1 mt-1 flex-wrap">
+                      {item.genre_tags.slice(0, 2).map((tag) => (
+                        <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-500 capitalize">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
 

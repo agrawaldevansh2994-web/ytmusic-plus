@@ -5,6 +5,7 @@ import { useImageColor } from '../hooks/useImageColor'
 import TopList from '../components/TopList'
 import GenreChart from '../components/GenreChart'
 import Heatmap from '../components/Heatmap'
+import RecentPlays from '../components/RecentPlays'
 
 const PERIODS: { label: string; value: Period }[] = [
   { label: 'Week',  value: 'week'  },
@@ -22,6 +23,7 @@ export default function Dashboard() {
     subtitle: t.artist,
     play_count: t.play_count,
     image_url: t.image_url,
+    genre_tags: t.genre_tags,
   }))
 
   const topArtistItems = (stats?.topArtists ?? []).map((a) => ({
@@ -40,6 +42,10 @@ export default function Dashboard() {
   }
 
   const syncText = stats?.lastSyncTimestamp ? `Last synced ${formatTimeAgo(stats.lastSyncTimestamp)}` : 'live'
+
+  const ytMatchPct = stats
+    ? `${Math.round((stats.youtubeMatch.resolved / Math.max(1, stats.youtubeMatch.total)) * 100)}%`
+    : '—'
 
   const colorStyle = topTrackColor
     ? {
@@ -127,10 +133,11 @@ export default function Dashboard() {
         )}
 
         {/* ── Summary cards ───────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <StatCard label="Scrobbles"  value={stats?.summary.total_plays.toLocaleString() ?? '—'} loading={loading} accent />
-          <StatCard label="Artists"    value={stats?.summary.unique_artists.toLocaleString() ?? '—'} loading={loading} />
-          <StatCard label="Top genre"  value={stats?.summary.top_genre ?? '—'} loading={loading} small />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <StatCard label="Scrobbles"   value={stats?.summary.total_plays.toLocaleString() ?? '—'} loading={loading} accent />
+          <StatCard label="Artists"     value={stats?.summary.unique_artists.toLocaleString() ?? '—'} loading={loading} />
+          <StatCard label="Top genre"   value={stats?.summary.top_genre ?? '—'} loading={loading} small />
+          <StatCard label="YT Matched"  value={ytMatchPct} loading={loading} />
         </div>
 
         {/* ── Top tracks + artists ────────────────────────────────── */}
@@ -149,8 +156,13 @@ export default function Dashboard() {
         </div>
 
         {/* ── Heatmap ─────────────────────────────────────────────── */}
-        <div className="bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-4 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
+        <div className="mb-8 bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-4 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
           <Heatmap data={stats?.heatmap ?? []} loading={loading} />
+        </div>
+
+        {/* ── Recent plays ─────────────────────────────────────────── */}
+        <div className="bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-4 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
+          <RecentPlays items={stats?.recentPlays ?? []} loading={loading} />
         </div>
 
         <p className="text-center text-[11px] font-medium text-zinc-600 mt-10 mb-4 tracking-wider uppercase">
@@ -209,4 +221,3 @@ function StatCard({
     </div>
   )
 }
-

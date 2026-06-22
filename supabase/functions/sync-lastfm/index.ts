@@ -110,6 +110,7 @@ Deno.serve(async (_req: Request) => {
     const lastSyncedAt = await getLastSyncedAt();
     let page = 1;
     let totalInserted = 0;
+    let totalSkippedDuplicates = 0;
     let latestTimestamp = lastSyncedAt;
     let hasMorePages = true;
 
@@ -171,21 +172,35 @@ Deno.serve(async (_req: Request) => {
 
         if (!trackRow?.id) continue;
 
-        const { error: playError } = await supabase.from('plays').upsert(
-          {
-            track_id: trackRow.id,
-            video_id: mbid || `${artist}__${title}`.toLowerCase().replace(/\s+/g, '_'),
-            title,
-            artist,
-            album,
-            played_at: playedAt,
-            lastfm_mbid: mbid,
-            source: 'lastfm',
-          },
-          { onConflict: 'track_id,played_at', ignoreDuplicates: true }
-        );
+        // ── FIX: count only genuine new inserts, not no-op duplicate skips ──
+        // .select() after an ignoreDuplicates upsert returns rows ONLY for
+        // rows that were actually written. A conflicting/duplicate row comes
+        // back as an empty array with no error, so the old `if (!playError)`
+        // check was incrementing totalInserted on every duplicate too.
+        const { data: playRows, error: playError } = await supabase
+          .from('plays')
+          .upsert(
+            {
+              track_id: trackRow.id,
+              video_id: mbid || `${artist}__${title}`.toLowerCase().replace(/\s+/g, '_'),
+              title,
+              artist,
+              album,
+              played_at: playedAt,
+              lastfm_mbid: mbid,
+              source: 'lastfm',
+            },
+            { onConflict: 'track_id,played_at', ignoreDuplicates: true }
+          )
+          .select('id');
 
-        if (!playError) totalInserted++;
+        if (playError) {
+          console.warn('Failed to upsert play:', playError);
+        } else if (playRows && playRows.length > 0) {
+          totalInserted++;
+        } else {
+          totalSkippedDuplicates++;
+        }
       }
 
       hasMorePages = page < totalPages;
@@ -197,14 +212,19 @@ Deno.serve(async (_req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, inserted: totalInserted, cursor: latestTimestamp }),
+      JSON.stringify({
+        success: true,
+        inserted: totalInserted,
+        skippedDuplicates: totalSkippedDuplicates,
+        cursor: latestTimestamp,
+      }),
       { headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
     console.error('sync-lastfm error:', err);
     return new Response(
       JSON.stringify({ error: err.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }
 });

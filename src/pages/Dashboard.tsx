@@ -6,6 +6,7 @@ import TopList from '../components/TopList'
 import GenreChart from '../components/GenreChart'
 import Heatmap from '../components/Heatmap'
 import RecentPlays from '../components/RecentPlays'
+import VibeRadar from '../components/VibeRadar'
 
 const PERIODS: { label: string; value: Period }[] = [
   { label: 'Week',  value: 'week'  },
@@ -134,11 +135,19 @@ export default function Dashboard() {
 
         {/* ── Summary cards ───────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Scrobbles"   value={stats?.summary.total_plays.toLocaleString() ?? '—'} loading={loading} accent />
-          <StatCard label="Artists"     value={stats?.summary.unique_artists.toLocaleString() ?? '—'} loading={loading} />
-          <StatCard label="Top genre"   value={stats?.summary.top_genre ?? '—'} loading={loading} small />
-          <StatCard label="YT Matched"  value={ytMatchPct} loading={loading} />
+          <StatCard label="Scrobbles"   value={stats?.summary.total_plays.toLocaleString() ?? '—'} loading={loading} color="purple" />
+          <StatCard label="Artists"     value={stats?.summary.unique_artists.toLocaleString() ?? '—'} loading={loading} color="green" />
+          <StatCard label="Top genre"   value={stats?.summary.top_genre ?? '—'} loading={loading} color="blue" small />
+          <StatCard label="YT Matched"  value={ytMatchPct} loading={loading} color="orange" />
         </div>
+
+        {/* ── Hero section ────────────────────────────────────────── */}
+        {!loading && stats?.topTracks && stats.topTracks.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">Top Track (This {period})</h3>
+            <HeroCard item={stats.topTracks[0]} />
+          </div>
+        )}
 
         {/* ── Top tracks + artists ────────────────────────────────── */}
         <div className="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2">
@@ -150,9 +159,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ── Genre chart ─────────────────────────────────────────── */}
-        <div className="mb-8 bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-4 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
-          <GenreChart data={stats?.genreDistribution ?? []} loading={loading} />
+        {/* ── Advanced Visualizations ─────────────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div className="bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-1 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
+            <VibeRadar data={stats?.genreDistribution ?? []} loading={loading} />
+          </div>
+          <div className="bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-1 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
+            <GenreChart data={stats?.genreDistribution ?? []} loading={loading} />
+          </div>
         </div>
 
         {/* ── Heatmap ─────────────────────────────────────────────── */}
@@ -173,36 +187,78 @@ export default function Dashboard() {
   )
 }
 
+/* ── HeroCard ────────────────────────────────────────────────────────────── */
+function HeroCard({ item }: { item: any }) {
+  if (!item) return null;
+  return (
+    <div className="relative overflow-hidden rounded-3xl h-64 group cursor-pointer shadow-2xl transition-transform duration-500 hover:-translate-y-1 hover:shadow-3xl">
+      {item.image_url ? (
+        <img
+          src={item.image_url.replace('300x300', '600x600')}
+          alt={item.name}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+      
+      <div className="absolute bottom-0 left-0 right-0 p-6 z-10 flex items-end justify-between">
+        <div className="min-w-0 flex-1 pr-4">
+          <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-2 block drop-shadow-md">
+            #1 Track
+          </span>
+          <h2 className="text-3xl font-black text-white truncate drop-shadow-lg leading-tight mb-1">
+            {item.name}
+          </h2>
+          <p className="text-sm font-medium text-zinc-300 truncate drop-shadow-md">
+            {item.artist}
+          </p>
+        </div>
+        
+        <div className="shrink-0 flex flex-col items-end">
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">Plays</span>
+          <span className="text-3xl font-black text-white drop-shadow-lg leading-none">
+            {item.play_count}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── StatCard ────────────────────────────────────────────────────────────── */
+const COLOR_MAP: Record<string, { bg: string, text: string }> = {
+  purple: { bg: 'bg-purple-900/30 border-purple-800/40 hover:bg-purple-900/50 hover:border-purple-700', text: 'text-purple-300' },
+  green: { bg: 'bg-emerald-900/30 border-emerald-800/40 hover:bg-emerald-900/50 hover:border-emerald-700', text: 'text-emerald-300' },
+  blue: { bg: 'bg-blue-900/30 border-blue-800/40 hover:bg-blue-900/50 hover:border-blue-700', text: 'text-blue-300' },
+  orange: { bg: 'bg-orange-900/30 border-orange-800/40 hover:bg-orange-900/50 hover:border-orange-700', text: 'text-orange-300' },
+  red: { bg: 'bg-red-900/30 border-red-800/40 hover:bg-red-900/50 hover:border-red-700', text: 'text-red-300' },
+  default: { bg: 'bg-zinc-900/40 border-zinc-800/50 hover:bg-zinc-900/60 hover:border-zinc-700', text: 'text-white' }
+}
+
 function StatCard({
   label,
   value,
   loading,
-  accent = false,
+  color = 'default',
   small = false,
 }: {
   label: string
   value: string
   loading: boolean
-  accent?: boolean
+  color?: string
   small?: boolean
 }) {
+  const theme = COLOR_MAP[color] || COLOR_MAP['default']
+  
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl p-5 border transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl ${
-        accent
-          ? 'bg-zinc-950/80 hover:bg-zinc-900'
-          : 'bg-zinc-900/40 backdrop-blur-xl border-zinc-800/50 hover:border-zinc-700 hover:bg-zinc-900/60'
-      }`}
-      style={accent ? { 
-        borderColor: 'rgba(var(--theme-color-rgb), 0.3)', 
-        boxShadow: '0 0 30px rgba(var(--theme-color-rgb), 0.05)' 
-      } : undefined}
+      className={`group relative overflow-hidden rounded-3xl p-5 border backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl ${theme.bg}`}
     >
-      {/* Glossy reflection effect */}
       <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <p className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] mb-2 z-10 relative">
+      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-2 z-10 relative">
         {label}
       </p>
       
@@ -211,9 +267,8 @@ function StatCard({
       ) : (
         <p
           className={`font-black tracking-tight leading-none truncate z-10 relative drop-shadow-sm transition-transform duration-500 group-hover:scale-105 origin-left ${
-            small ? 'text-lg text-white mt-1' : 'text-3xl tabular-nums'
-          } ${accent ? 'text-transparent bg-clip-text' : 'text-white'}`}
-          style={accent ? { backgroundImage: 'linear-gradient(to bottom right, #ffffff, var(--theme-color-light))' } : undefined}
+            small ? 'text-lg mt-1' : 'text-3xl tabular-nums'
+          } ${theme.text}`}
         >
           {value}
         </p>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useStats } from '../hooks/useStats'
 import type { Period } from '../hooks/useStats'
 import { useImageColor } from '../hooks/useImageColor'
@@ -139,6 +140,35 @@ export default function Dashboard() {
           <StatCard label="Artists"     value={stats?.summary.unique_artists.toLocaleString() ?? '—'} loading={loading} color="green" />
           <StatCard label="Top genre"   value={stats?.summary.top_genre ?? '—'} loading={loading} color="blue" small />
           <StatCard label="YT Matched"  value={ytMatchPct} loading={loading} color="orange" />
+        </div>
+
+        {/* ── Quick Actions ────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <Link to="/shuffle" className="group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-zinc-800/50 p-4 hover:bg-zinc-800/50 hover:border-zinc-700 transition-all duration-300 flex items-center gap-4 shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-red-900/20 z-10">
+              <svg className="w-6 h-6 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <div className="z-10">
+              <h3 className="font-bold text-white text-lg leading-tight group-hover:text-red-400 transition-colors">Play My Mix</h3>
+              <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold mt-1">Smart Shuffle</p>
+            </div>
+          </Link>
+
+          <button onClick={() => alert('Vibes feature coming soon!')} className="group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-zinc-800/50 p-4 hover:bg-zinc-800/50 hover:border-zinc-700 transition-all duration-300 flex items-center gap-4 text-left shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-purple-900/20 z-10">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div className="z-10">
+              <h3 className="font-bold text-white text-lg leading-tight group-hover:text-purple-400 transition-colors">1-Click Vibes</h3>
+              <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold mt-1">Generate by Mood</p>
+            </div>
+          </button>
         </div>
 
         {/* ── Hero section ────────────────────────────────────────── */}

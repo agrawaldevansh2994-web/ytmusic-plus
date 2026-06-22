@@ -36,7 +36,8 @@ export default function VibeRadar({ data, loading }: VibeRadarProps) {
             <PolarGrid stroke="#3f3f46" />
             <PolarAngleAxis 
               dataKey="genre" 
-              tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'Inter, sans-serif', textTransform: 'capitalize' }}
+              tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'Inter, sans-serif' }}
+              tickFormatter={(val) => val.charAt(0).toUpperCase() + val.slice(1)}
             />
             <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
             <Tooltip

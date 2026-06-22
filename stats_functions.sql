@@ -188,15 +188,15 @@ LANGUAGE sql STABLE AS $$
   ),
   high_tier AS (
     SELECT *, 1 as bucket FROM scored_tracks WHERE tier = 'high'
-    ORDER BY random() LIMIT GREATEST(1, ROUND(playlist_size * 0.45))
+    ORDER BY random() LIMIT GREATEST(1, ROUND(playlist_size * 0.20))
   ),
   mid_tier AS (
     SELECT *, 2 as bucket FROM scored_tracks WHERE tier = 'mid'
-    ORDER BY random() LIMIT GREATEST(1, ROUND(playlist_size * 0.35))
+    ORDER BY random() LIMIT GREATEST(1, ROUND(playlist_size * 0.25))
   ),
   low_tier AS (
     SELECT *, 3 as bucket FROM scored_tracks WHERE tier = 'low'
-    ORDER BY random() LIMIT GREATEST(1, ROUND(playlist_size * 0.20))
+    ORDER BY random() LIMIT GREATEST(1, ROUND(playlist_size * 0.55))
   ),
   combined AS (
     SELECT * FROM high_tier

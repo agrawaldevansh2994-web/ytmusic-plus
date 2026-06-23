@@ -32,11 +32,46 @@ const VIBES = [
 const YT_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
 // ── YouTube playlist creation via OAuth ───────────────────────────────────────
+interface PlaylistResult {
+  playlistId: string
+  added: number
+  failed: number
+  total: number
+}
+
+async function insertTrack(accessToken: string, playlistId: string, videoId: string): Promise<boolean> {
+  const res = await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      snippet: { playlistId, resourceId: { kind: 'youtube#video', videoId } },
+    }),
+  })
+
+  if (res.ok) return true
+
+  // On rate-limit: wait 2s and retry once
+  if (res.status === 429) {
+    await new Promise((r) => setTimeout(r, 2000))
+    const retry = await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        snippet: { playlistId, resourceId: { kind: 'youtube#video', videoId } },
+      }),
+    })
+    return retry.ok
+  }
+
+  // 4xx other than 429 = video unavailable/deleted/region-blocked — skip silently
+  return false
+}
+
 async function createYouTubePlaylist(
   accessToken: string,
   title: string,
   tracks: (ShuffleTrack & { youtube_video_id?: string })[]
-): Promise<string> {
+): Promise<PlaylistResult> {
   // 1. Create empty playlist
   const createRes = await fetch('https://www.googleapis.com/youtube/v3/playlists?part=snippet,status', {
     method: 'POST',
@@ -49,19 +84,20 @@ async function createYouTubePlaylist(
   const { id: playlistId } = await createRes.json()
   if (!playlistId) throw new Error('Failed to create playlist')
 
-  // 2. Add each track that has a resolved video ID
+  // 2. Insert each track with a 100ms gap to avoid per-minute throttling
   const validTracks = tracks.filter((t) => t.youtube_video_id && t.youtube_video_id !== '__not_found__')
+  let added = 0
+  let failed = 0
+
   for (const track of validTracks) {
-    await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        snippet: { playlistId, resourceId: { kind: 'youtube#video', videoId: track.youtube_video_id } },
-      }),
-    })
+    const ok = await insertTrack(accessToken, playlistId, track.youtube_video_id!)
+    if (ok) added++
+    else failed++
+    // Breathing room between requests
+    await new Promise((r) => setTimeout(r, 100))
   }
 
-  return playlistId
+  return { playlistId, added, failed, total: validTracks.length }
 }
 
 // ── Google OAuth helper ───────────────────────────────────────────────────────
@@ -86,6 +122,7 @@ export default function Shuffle() {
   const [vibe, setVibe] = useState('all')
   const [pushState, setPushState] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
   const [ytPlaylistUrl, setYtPlaylistUrl] = useState<string | null>(null)
+  const [pushResult, setPushResult] = useState<{ added: number; total: number } | null>(null)
   const [oauthToken, setOauthToken] = useState(() => localStorage.getItem('yt_access_token'))
 
   useEffect(() => {
@@ -204,15 +241,16 @@ export default function Shuffle() {
       const nextIndex = parseInt(nextIndexStr, 10)
       const title = `Smart Shuffle ${nextIndex}`
       localStorage.setItem('smart_shuffle_index', (nextIndex + 1).toString())
-      const playlistId = await createYouTubePlaylist(currentToken, title, tracks as any)
-      const url = `https://music.youtube.com/playlist?list=${playlistId}`
+      const result = await createYouTubePlaylist(currentToken, title, tracks as any)
+      const url = `https://music.youtube.com/playlist?list=${result.playlistId}`
       setYtPlaylistUrl(url)
+      setPushResult({ added: result.added, total: result.total })
       setPushState('done')
 
       supabase
         .rpc('log_manual_playlist', {
           p_title: title,
-          p_youtube_playlist_id: playlistId,
+          p_youtube_playlist_id: result.playlistId,
           p_youtube_playlist_url: url,
           p_requested_size: size,
           p_target_genre: vibe !== 'all' ? vibe : null,
@@ -320,12 +358,21 @@ export default function Shuffle() {
       {generated && !loading && (
         <div className="mb-5">
           {pushState === 'done' && ytPlaylistUrl ? (
-            <a href={ytPlaylistUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold
-                bg-zinc-800 hover:bg-zinc-700 text-white transition-all duration-200 border border-zinc-700">
-              <YTIcon />
-              Open in YouTube Music ↗
-            </a>
+            <div className="space-y-1.5">
+              <a href={ytPlaylistUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold
+                  bg-zinc-800 hover:bg-zinc-700 text-white transition-all duration-200 border border-zinc-700">
+                <YTIcon />
+                Open in YouTube Music ↗
+              </a>
+              {pushResult && (
+                <p className={`text-[11px] text-center font-medium ${pushResult.added < pushResult.total ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {pushResult.added === pushResult.total
+                    ? `✓ All ${pushResult.added} tracks added`
+                    : `✓ ${pushResult.added}/${pushResult.total} tracks added — ${pushResult.total - pushResult.added} unavailable on YouTube`}
+                </p>
+              )}
+            </div>
           ) : (
             <button onClick={handlePushToYouTube} disabled={pushState === 'pushing'}
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold

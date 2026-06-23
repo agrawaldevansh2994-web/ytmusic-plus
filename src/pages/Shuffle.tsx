@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useShuffle, useTasteSummary } from '../hooks/useShuffle'
 import type { ShuffleTrack } from '../hooks/useShuffle'
+import { useDiscover } from '../hooks/useDiscover'
+import DiscoverView from '../components/DiscoverView'
 import { supabase } from '../lib/supabase'
+
+type Mode = 'mix' | 'discover'
 
 const PERSONA_META: Record<string, { emoji: string; label: string; color: string }> = {
   morning:   { emoji: '🌅', label: 'Morning listener',   color: 'from-amber-900/30 to-transparent' },
@@ -118,6 +122,8 @@ function signInWithGoogle(): void {
 export default function Shuffle() {
   const { summary, loading: summaryLoading } = useTasteSummary()
   const { playlist, loading, generated, generate } = useShuffle()
+  const { recs, loading: discoverLoading, generated: discoverGenerated, error: discoverError, discover } = useDiscover()
+  const [mode, setMode] = useState<Mode>('mix')
   const [size, setSize] = useState(25)
   const [vibe, setVibe] = useState('all')
   const [pushState, setPushState] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
@@ -214,8 +220,14 @@ export default function Shuffle() {
   }
 
   async function handleGenerate(n: number) {
-    await generate(n, vibe)
+    if (mode === 'discover') {
+      await discover(vibe, n)
+    } else {
+      await generate(n, vibe)
+    }
   }
+
+  const busy = mode === 'discover' ? discoverLoading : loading
 
   async function handlePushToYouTube() {
     let currentToken = oauthToken
@@ -277,15 +289,41 @@ export default function Shuffle() {
   const displayPlaylist = playlist
 
   return (
-    <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
+    <div className="min-h-screen min-h-[100dvh] px-4 py-6 sm:px-6 max-w-2xl mx-auto">
 
       {/* ── Header ────────────────────────────────────────────────── */}
-      <header className="mb-6">
+      <header className="mb-5">
         <h1 className="text-xl font-bold text-white tracking-tight leading-none">
           YTMusic<span className="text-red-500">+</span>
         </h1>
-        <p className="text-xs text-zinc-500 mt-1">Smart Shuffle</p>
+        <p className="text-xs text-zinc-500 mt-1">{mode === 'discover' ? 'Discover' : 'Smart Shuffle'}</p>
       </header>
+
+      {/* ── Mode toggle ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-1.5 p-1.5 mb-5 rounded-2xl bg-zinc-900/60 border border-zinc-800/60">
+        {([
+          { id: 'mix' as Mode, label: 'My Mix', sub: 'From your library', emoji: '🎯' },
+          { id: 'discover' as Mode, label: 'Discover', sub: 'Brand-new music', emoji: '✨' },
+        ]).map((m) => (
+          <button
+            key={m.id}
+            onClick={() => setMode(m.id)}
+            className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all duration-300 ${
+              mode === m.id
+                ? m.id === 'discover'
+                  ? 'bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg shadow-purple-900/30'
+                  : 'bg-gradient-to-br from-red-600 to-red-500 shadow-lg shadow-red-900/30'
+                : 'hover:bg-white/5'
+            }`}
+          >
+            <span className="text-lg">{m.emoji}</span>
+            <span className="min-w-0">
+              <span className={`block text-sm font-bold leading-tight ${mode === m.id ? 'text-white' : 'text-zinc-300'}`}>{m.label}</span>
+              <span className={`block text-[10px] leading-tight truncate ${mode === m.id ? 'text-white/70' : 'text-zinc-600'}`}>{m.sub}</span>
+            </span>
+          </button>
+        ))}
+      </div>
 
       {/* ── Taste persona card ────────────────────────────────────── */}
       {!summaryLoading && summary && (
@@ -342,12 +380,19 @@ export default function Shuffle() {
             </button>
           ))}
         </div>
-        <button onClick={() => handleGenerate(size)} disabled={loading}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold
-            bg-red-500 hover:bg-red-400 active:scale-95 text-white transition-all duration-200
-            disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-red-500/20">
-          {loading ? (
-            <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating…</>
+        <button onClick={() => handleGenerate(size)} disabled={busy}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold
+            active:scale-95 text-white transition-all duration-200
+            disabled:opacity-60 disabled:cursor-not-allowed shadow-lg ${
+              mode === 'discover'
+                ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-500/20'
+                : 'bg-red-500 hover:bg-red-400 shadow-red-500/20'
+            }`}>
+          {busy ? (
+            <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              {mode === 'discover' ? 'Finding…' : 'Generating…'}</>
+          ) : mode === 'discover' ? (
+            <><span>{discoverGenerated ? '🔄' : '🛰️'}</span>{discoverGenerated ? 'Find more' : 'Find new music'}</>
           ) : (
             <><span>{generated ? '🔄' : '✨'}</span>{generated ? 'Regenerate' : 'Generate Playlist'}</>
           )}
@@ -355,7 +400,7 @@ export default function Shuffle() {
       </div>
 
       {/* ── Push to YouTube button ────────────────────────────────── */}
-      {generated && !loading && (
+      {mode === 'mix' && generated && !loading && (
         <div className="mb-5">
           {pushState === 'done' && ytPlaylistUrl ? (
             <div className="space-y-1.5">
@@ -397,7 +442,7 @@ export default function Shuffle() {
       )}
 
       {/* ── Tier legend ───────────────────────────────────────────── */}
-      {generated && (
+      {mode === 'mix' && generated && (
         <div className="flex gap-2 mb-4 flex-wrap">
           {Object.entries(TIER_META).map(([tier, meta]) => (
             <span key={tier}
@@ -409,8 +454,8 @@ export default function Shuffle() {
         </div>
       )}
 
-      {/* ── Empty state ───────────────────────────────────────────── */}
-      {!generated && !loading && (
+      {/* ── Empty state (mix) ─────────────────────────────────────── */}
+      {mode === 'mix' && !generated && !loading && (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">🎧</p>
           <p className="text-zinc-400 text-sm font-medium">Your taste, intelligently shuffled</p>
@@ -418,13 +463,18 @@ export default function Shuffle() {
         </div>
       )}
 
-      {/* ── Playlist ──────────────────────────────────────────────── */}
-      {generated && !loading && (
+      {/* ── Playlist (mix) ────────────────────────────────────────── */}
+      {mode === 'mix' && generated && !loading && (
         <ul className="space-y-1.5">
           {displayPlaylist.map((track, i) => (
             <TrackRow key={i} track={track} index={i} />
           ))}
         </ul>
+      )}
+
+      {/* ── Discover ──────────────────────────────────────────────── */}
+      {mode === 'discover' && (
+        <DiscoverView recs={recs} loading={discoverLoading} generated={discoverGenerated} error={discoverError} />
       )}
     </div>
   )

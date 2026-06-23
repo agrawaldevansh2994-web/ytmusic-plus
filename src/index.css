@@ -5,12 +5,23 @@
 @layer base {
   html {
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-zinc-950 text-zinc-100 antialiased;
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(239,68,68,0.06), transparent);
+    /* Native-app feel on touch: no grey tap flash, no rubber-band bounce */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* Make interactive elements feel responsive to touch without a hover state */
+  button, a, [role='button'] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   ::-webkit-scrollbar { @apply w-1.5; }
@@ -23,6 +34,12 @@
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Safe-area helpers for notched / home-indicator phones (viewport-fit=cover) */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .h-nav-safe { height: calc(4rem + env(safe-area-inset-bottom)); }
+  .pb-nav-safe { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
 
   /* Shimmer skeleton — replaces flat pulse with a sweeping highlight */
   .skeleton {

@@ -17,7 +17,7 @@ export default function Playlists() {
   const [openId, setOpenId] = useState<string | null>(null)
 
   return (
-    <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
+    <div className="min-h-screen min-h-[100dvh] px-4 py-6 sm:px-6 max-w-2xl mx-auto">
       {/* ── Header ────────────────────────────────────────────────── */}
       <header className="mb-6">
         <h1 className="text-xl font-bold text-white tracking-tight leading-none">

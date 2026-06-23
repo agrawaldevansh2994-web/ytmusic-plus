@@ -5,7 +5,7 @@ import Playlists from './pages/Playlists'
 
 export default function App() {
   return (
-    <div className="pb-16"> {/* padding for bottom nav */}
+    <div className="pt-safe pb-nav-safe"> {/* safe-area top + room for bottom nav */}
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -14,8 +14,8 @@ export default function App() {
       </Routes>
 
       {/* ── Bottom navigation ───────────────────────────────────── */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 flex justify-around items-center
-        h-16 border-t border-zinc-800/70 bg-zinc-950/90 backdrop-blur-md">
+      <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-zinc-800/70 bg-zinc-950/90 backdrop-blur-md pb-safe">
+        <div className="flex justify-around items-center h-16">
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
@@ -81,6 +81,7 @@ export default function App() {
             </>
           )}
         </NavLink>
+        </div>
       </nav>
     </div>
   )

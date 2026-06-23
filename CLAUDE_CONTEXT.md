@@ -15,14 +15,20 @@ This document contains specific context regarding recent architectural changes a
 - The database `generate_smart_shuffle` function and frontend `VIBES` array were updated to merge sub-genres. When the user requests **"Schranz"**, the database queries `schranz, hard techno, acid, dark techno, emotional techno`. When **"Trance"** is requested, it queries `trance, psytrance`.
 - The `RecentPlays` component now proudly displays these `genre_tags` (fetched via Last.fm) directly below the track names, matching the aesthetic of the Smart Shuffle UI.
 
-## 4. Upcoming Priority: Last.fm Inspired UI Revamp
-- The user's next primary objective is to redesign the analytics/dashboard UI heavily inspired by **Last.fm**. 
-- **Planned Features:** 
-  1. Top-level colorful stat cards (Purple/Green/Blue) for Artists, Albums, and Tracks.
-  2. Large "Hero" cards with full-background artwork for the #1 Top Artist/Album/Track.
-  3. Advanced Data Visualizations (e.g., Weekly Scrobble Trend bar charts, "Vibe Fingerprint" radar charts, and Listening Diversity rings).
-  4. Quick-action widgets ("Play My Mix", "1-Click Vibes").
-  5. Hover-actions on track lists to play directly or 'heart' to increase affinity tier.
+## 4. Last.fm UI Revamp — DONE (Session 2)
+- Stat cards: 6-card grid with purple/green/pink/cyan/blue/orange — Scrobbles, Artists, Listening Time, Avg/Artist, Top Genre, YT Matched
+- Scrobbles + Artists animate with count-up (useCountUp hook)
+- Hero card for #1 track: full artwork, hover play button, clickable → YT Music search
+- VibeRadar + GenreChart already existed; now wrapped in scroll-reveal (Reveal component)
+- Heatmap + RecentPlays: shimmer skeletons, staggered row entrance
+- Quick-action "Play My Mix" links to /shuffle; "1-Click Vibes" now shows a live mood picker (8 genres) → navigates to /shuffle?vibe=<id>&auto=1 and auto-generates
+- TopList rows: clickable → YT Music search, rank icon → play icon on hover
+- RecentPlays rows: all linked (direct video link or search fallback), play overlay on artwork hover
+
+## 5. Upcoming: Remaining Premium Features
+1. **Top Albums widget** — needs `get_top_albums` RPC (group plays by album)
+2. **Weekly scrobble trend chart** — needs `get_weekly_scrobbles` RPC; use recharts BarChart
+3. **Manual "Sync Now" button** — call `sync-lastfm` Edge Function from frontend
 
 ## 5. SaaS / Multi-tenant Roadmap
 - The user plans to convert this personal tool into a public SaaS application. 

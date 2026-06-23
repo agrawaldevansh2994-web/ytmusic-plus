@@ -117,9 +117,11 @@ export default function Shuffle() {
           setPushState('error')
         }
       } else {
-        // Check if token is expired, if so try to refresh it automatically
+        // Try silent refresh if: no token at all, OR token is expired
+        const storedToken = localStorage.getItem('yt_access_token')
         const expiresAt = localStorage.getItem('yt_token_expires_at')
-        if (expiresAt && Date.now() > parseInt(expiresAt)) {
+        const tokenExpired = expiresAt && Date.now() > parseInt(expiresAt)
+        if (!storedToken || tokenExpired) {
           refreshAccessToken()
         }
       }
@@ -181,14 +183,16 @@ export default function Shuffle() {
   async function handlePushToYouTube() {
     let currentToken = oauthToken
     
-    // Check if we need to refresh right before pushing
+    // Try silent server-side refresh whenever there's no valid local token
     const expiresAt = localStorage.getItem('yt_token_expires_at')
-    if (expiresAt && Date.now() > parseInt(expiresAt)) {
-      setPushState('pushing') // show spinner during refresh
+    const tokenExpired = expiresAt ? Date.now() > parseInt(expiresAt) : false
+    if (!currentToken || tokenExpired) {
+      setPushState('pushing')
       currentToken = await refreshAccessToken()
     }
 
     if (!currentToken) {
+      // Only reach here if DB has no refresh token (true first-time auth)
       signInWithGoogle()
       return
     }

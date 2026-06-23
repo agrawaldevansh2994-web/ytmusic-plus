@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export type Period = 'week' | 'month' | 'all'
@@ -16,8 +16,20 @@ export interface TopArtist {
   play_count: number
 }
 
+export interface TopAlbum {
+  album: string
+  artist: string
+  play_count: number
+  image_url?: string
+}
+
 export interface GenreEntry {
   genre: string
+  play_count: number
+}
+
+export interface WeeklyScrobble {
+  day: string
   play_count: number
 }
 
@@ -53,7 +65,9 @@ export interface Stats {
   summary: Summary
   topTracks: TopTrack[]
   topArtists: TopArtist[]
+  topAlbums: TopAlbum[]
   genreDistribution: GenreEntry[]
+  weeklyScrobbles: WeeklyScrobble[]
   heatmap: HeatmapCell[]
   recentPlays: RecentPlay[]
   youtubeMatch: YoutubeMatchStats
@@ -64,6 +78,10 @@ export function useStats(period: Period) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshTick, setRefreshTick] = useState(0)
+
+  // Bump the tick to re-run the loader (used after a manual sync).
+  const refetch = useCallback(() => setRefreshTick((t) => t + 1), [])
 
   useEffect(() => {
     setLoading(true)
@@ -80,6 +98,8 @@ export function useStats(period: Period) {
           { data: syncData,     error: e5 },
           { data: recentPlays,  error: e6 },
           { data: ytMatchRows,  error: e7 },
+          { data: topAlbums,    error: e8 },
+          { data: weeklyRows,   error: e9 },
         ] = await Promise.all([
           supabase.rpc('get_summary',              { period }),
           supabase.rpc('get_top_tracks',            { period, lim: 10 }),
@@ -89,9 +109,11 @@ export function useStats(period: Period) {
           supabase.from('sync_state').select('value').eq('key', 'lastfm_last_synced_at').maybeSingle(),
           supabase.rpc('get_recent_plays',          { lim: 8 }),
           supabase.rpc('get_youtube_match_stats'),
+          supabase.rpc('get_top_albums',            { period, lim: 10 }),
+          supabase.rpc('get_weekly_scrobbles',      { days: 7 }),
         ])
 
-        const firstErr = e0 ?? e1 ?? e2 ?? e3 ?? e4 ?? e5 ?? e6 ?? e7
+        const firstErr = e0 ?? e1 ?? e2 ?? e3 ?? e4 ?? e5 ?? e6 ?? e7 ?? e8 ?? e9
         if (firstErr) throw firstErr
 
         const summary: Summary = summaryRows?.[0] ?? {
@@ -107,7 +129,9 @@ export function useStats(period: Period) {
           summary,
           topTracks:         (topTracks   as TopTrack[])   ?? [],
           topArtists:        (topArtists  as TopArtist[])  ?? [],
+          topAlbums:         (topAlbums   as TopAlbum[])   ?? [],
           genreDistribution: (genreDist   as GenreEntry[]) ?? [],
+          weeklyScrobbles:   (weeklyRows  as WeeklyScrobble[]) ?? [],
           heatmap:           (heatmap     as HeatmapCell[]) ?? [],
           recentPlays:       (recentPlays as RecentPlay[]) ?? [],
           youtubeMatch,
@@ -121,7 +145,7 @@ export function useStats(period: Period) {
     }
 
     load()
-  }, [period])
+  }, [period, refreshTick])
 
-  return { stats, loading, error }
+  return { stats, loading, error, refetch }
 }

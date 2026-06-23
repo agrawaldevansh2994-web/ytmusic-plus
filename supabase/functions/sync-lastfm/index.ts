@@ -10,6 +10,11 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 async function getLastSyncedAt(): Promise<number | null> {
   const { data } = await supabase
     .from('sync_state')
@@ -101,10 +106,18 @@ function cleanName(name: string): string {
     .trim();
 }
 
-Deno.serve(async (_req: Request) => {
+Deno.serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
     if (!LASTFM_API_KEY) {
-      return new Response(JSON.stringify({ error: 'LASTFM_API_KEY not set' }), { status: 500 });
+      return new Response(JSON.stringify({ error: 'LASTFM_API_KEY not set' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const lastSyncedAt = await getLastSyncedAt();
@@ -218,13 +231,13 @@ Deno.serve(async (_req: Request) => {
         skippedDuplicates: totalSkippedDuplicates,
         cursor: latestTimestamp,
       }),
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
     console.error('sync-lastfm error:', err);
     return new Response(
       JSON.stringify({ error: err.message }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

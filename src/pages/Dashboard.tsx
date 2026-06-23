@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import { useStats } from '../hooks/useStats'
 import type { Period } from '../hooks/useStats'
 import { useImageColor } from '../hooks/useImageColor'
@@ -7,6 +8,7 @@ import { useCountUp } from '../hooks/useCountUp'
 import Reveal from '../components/Reveal'
 import TopList from '../components/TopList'
 import GenreChart from '../components/GenreChart'
+import WeeklyChart from '../components/WeeklyChart'
 import Heatmap from '../components/Heatmap'
 import RecentPlays from '../components/RecentPlays'
 import VibeRadar from '../components/VibeRadar'
@@ -33,7 +35,28 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [period, setPeriod] = useState<Period>('all')
   const [showVibes, setShowVibes] = useState(false)
-  const { stats, loading, error } = useStats(period)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState<string | null>(null)
+  const { stats, loading, error, refetch } = useStats(period)
+
+  async function handleSync() {
+    if (syncing) return
+    setSyncing(true)
+    setSyncMsg(null)
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('sync-lastfm')
+      if (fnError) throw fnError
+      if (data?.error) throw new Error(data.error)
+      const added = data?.inserted ?? 0
+      setSyncMsg(added > 0 ? `✓ ${added} new ${added === 1 ? 'play' : 'plays'} synced` : '✓ Up to date')
+      refetch()
+    } catch (err) {
+      setSyncMsg(`✗ ${err instanceof Error ? err.message : 'Sync failed'}`)
+    } finally {
+      setSyncing(false)
+      setTimeout(() => setSyncMsg(null), 4000)
+    }
+  }
   const topTrackColor = useImageColor(stats?.topTracks?.[0]?.image_url)
 
   const topTracksItems = (stats?.topTracks ?? []).map((t) => ({
@@ -47,6 +70,13 @@ export default function Dashboard() {
   const topArtistItems = (stats?.topArtists ?? []).map((a) => ({
     name: a.artist,
     play_count: a.play_count,
+  }))
+
+  const topAlbumItems = (stats?.topAlbums ?? []).map((a) => ({
+    name: a.album,
+    subtitle: a.artist,
+    play_count: a.play_count,
+    image_url: a.image_url,
   }))
 
   const formatTimeAgo = (ts: number) => {
@@ -89,7 +119,7 @@ export default function Dashboard() {
       } as React.CSSProperties
 
   return (
-    <div className="min-h-screen relative overflow-hidden transition-colors duration-1000" style={colorStyle}>
+    <div className="min-h-screen min-h-[100dvh] relative overflow-hidden transition-colors duration-1000" style={colorStyle}>
       {/* ── Ambient Background Glows ──────────────────────────────── */}
       <div
         className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none transition-colors duration-1000 animate-float-slow"
@@ -100,11 +130,11 @@ export default function Dashboard() {
         style={{ backgroundColor: 'rgba(var(--theme-color-rgb), 0.08)', animationDelay: '-7s' }}
       />
 
-      <div className="relative z-10 px-4 py-8 max-w-2xl mx-auto">
+      <div className="relative z-10 px-4 py-6 sm:px-6 sm:py-8 max-w-2xl mx-auto">
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="flex items-center justify-between mb-8">
           <div className="space-y-1">
-            <h1 className="text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               <span className="text-white">YTMusic</span>
               <span 
                 className="bg-clip-text text-transparent transition-colors duration-1000"
@@ -127,7 +157,31 @@ export default function Dashboard() {
               <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest">
                 DevDevansh <span className="mx-1 opacity-50">•</span> <span className="lowercase">{syncText}</span>
               </p>
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                title="Pull latest scrobbles from Last.fm"
+                className="group flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/60 border border-zinc-800/60 text-zinc-400 hover:text-white hover:border-zinc-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-wait"
+              >
+                <svg
+                  className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="text-[10px] font-bold uppercase tracking-widest">
+                  {syncing ? 'Syncing' : 'Sync'}
+                </span>
+              </button>
             </div>
+            {syncMsg && (
+              <p className={`text-[11px] font-medium mt-0.5 ${syncMsg.startsWith('✗') ? 'text-red-400' : 'text-emerald-400'}`}>
+                {syncMsg}
+              </p>
+            )}
           </div>
 
           {/* Period selector */}
@@ -136,7 +190,7 @@ export default function Dashboard() {
               <button
                 key={p.value}
                 onClick={() => setPeriod(p.value)}
-                className={`relative px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-300 ${
+                className={`relative px-3 sm:px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-300 ${
                   period === p.value
                     ? 'text-white'
                     : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
@@ -164,7 +218,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Summary cards ───────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
           <StatCard label="Scrobbles"      count={stats?.summary.total_plays}     loading={loading} color="purple" />
           <StatCard label="Artists"        count={stats?.summary.unique_artists}  loading={loading} color="green" />
           <StatCard label="Listening time" value={fmtDuration(stats?.summary.total_duration_seconds)} loading={loading} color="pink" small />
@@ -174,7 +228,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Quick Actions ────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
           <Link to="/shuffle" className="group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-zinc-800/50 p-4 hover:bg-zinc-800/50 hover:border-zinc-700 transition-all duration-300 flex items-center gap-4 shadow-xl">
             <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-red-900/20 z-10">
@@ -239,6 +293,13 @@ export default function Dashboard() {
           </div>
         </Reveal>
 
+        {/* ── Top albums ──────────────────────────────────────────── */}
+        <Reveal className="block mb-8">
+          <div className="bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-1 overflow-hidden shadow-2xl">
+            <TopList title="Top albums" items={topAlbumItems} loading={loading} />
+          </div>
+        </Reveal>
+
         {/* ── Advanced Visualizations ─────────────────────────────── */}
         <Reveal className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div className="bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-1 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
@@ -247,6 +308,11 @@ export default function Dashboard() {
           <div className="bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-1 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
             <GenreChart data={stats?.genreDistribution ?? []} loading={loading} />
           </div>
+        </Reveal>
+
+        {/* ── Weekly scrobble trend ───────────────────────────────── */}
+        <Reveal className="block mb-8 bg-zinc-900/30 backdrop-blur-lg border border-zinc-800/40 rounded-3xl p-1 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
+          <WeeklyChart data={stats?.weeklyScrobbles ?? []} loading={loading} />
         </Reveal>
 
         {/* ── Heatmap ─────────────────────────────────────────────── */}
@@ -363,7 +429,7 @@ function StatCard({
 
   return (
     <div
-      className={`shine group relative overflow-hidden rounded-3xl p-5 border backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl ${theme.bg}`}
+      className={`shine group relative overflow-hidden rounded-3xl p-4 sm:p-5 border backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl ${theme.bg}`}
     >
       <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 

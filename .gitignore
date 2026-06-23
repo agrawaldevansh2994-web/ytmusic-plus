@@ -16,3 +16,7 @@ Thumbs.db
 # Secrets
 client_secret_*.json
 supabase/.temp/
+
+# Markdown / internal docs — keep project context out of the open repo
+*.md
+!README.md

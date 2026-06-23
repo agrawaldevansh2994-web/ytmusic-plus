@@ -18,3 +18,74 @@
   ::-webkit-scrollbar-thumb { @apply bg-zinc-700 rounded-full; }
   ::-webkit-scrollbar-thumb:hover { @apply bg-zinc-600; }
 }
+
+/* ── Premium motion & surfaces ─────────────────────────────────────────── */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Shimmer skeleton — replaces flat pulse with a sweeping highlight */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(39 39 42 / 0.5);
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+  @keyframes shimmer {
+    100% { transform: translateX(100%); }
+  }
+
+  /* Diagonal light sweep used on hero / premium surfaces */
+  .shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    transform: skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .group:hover .shine::before {
+    animation: shine-sweep 0.9s ease-out;
+  }
+  @keyframes shine-sweep {
+    0%   { left: -75%; opacity: 0; }
+    20%  { opacity: 1; }
+    100% { left: 125%; opacity: 0; }
+  }
+
+  /* Ambient glow drift */
+  .animate-float-slow { animation: float-slow 14s ease-in-out infinite; }
+  @keyframes float-slow {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(4%, 6%) scale(1.08); }
+  }
+
+  /* Staggered list/section entrance */
+  .animate-row-in {
+    opacity: 0;
+    animation: row-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes row-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

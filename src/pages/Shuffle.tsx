@@ -128,6 +128,21 @@ export default function Shuffle() {
     handleCode()
   }, [])
 
+  // ── 1-Click Vibes: preselect a vibe (and optionally auto-generate) from the URL ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const vibeParam = params.get('vibe')
+    const auto = params.get('auto')
+    if (!vibeParam || !VIBES.some((v) => v.id === vibeParam)) return
+
+    setVibe(vibeParam)
+    if (auto === '1') {
+      generate(size, vibeParam)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   async function refreshAccessToken() {
     try {
       const { data, error } = await supabase.functions.invoke('youtube-oauth-exchange', {
